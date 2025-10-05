@@ -7,7 +7,7 @@ zokou({
   reaction: "👍🏻",
   categorie: "General",
 }, async (dest, origine, msg) => {
-  const { repondre, arg, sender } = msg;
+  const { repondre, arg } = msg;
 
   try {
     if (!arg || arg.length === 0) {
@@ -15,7 +15,7 @@ zokou({
         "⚠️ *Please provide a number in the format:* `25578xxxxxxx`",
         { 
           contextInfo: {
-            mentionedJid: [sender],
+            mentionedJid: [msg.sender],
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
@@ -32,7 +32,7 @@ zokou({
       "🕓 *Please wait... DML-XMD is generating your Pair Code.*",
       {
         contextInfo: {
-          mentionedJid: [sender],
+          mentionedJid: [msg.sender],
           forwardingScore: 999,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
@@ -54,7 +54,7 @@ zokou({
         `✅ *Your Pair Code is ready!*\n\n🔗 \`\`\`${data.code}\`\`\`\n\n📲 *Copy the above code and link your WhatsApp using Linked Devices section.*`,
         {
           contextInfo: {
-            mentionedJid: [sender],
+            mentionedJid: [msg.sender],
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
@@ -75,7 +75,7 @@ zokou({
       "❌ *Error:* Could not get response from the pairing service.\n\nPlease try again later.",
       {
         contextInfo: {
-          mentionedJid: [sender],
+          mentionedJid: [msg.sender],
           forwardingScore: 999,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
