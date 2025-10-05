@@ -1,5 +1,5 @@
 const { zokou } = require("../framework/zokou");
-const { default: axios } = require("axios");
+const axios = require("axios").default;
 
 zokou(
   {
@@ -9,11 +9,15 @@ zokou(
     categorie: "General",
   },
   async (dest, origine, msg) => {
-    const { repondre, arg, zokouBot, sender } = msg;
+    const { repondre, arg, zokouBot } = msg;
 
     try {
+      // Validate input
       if (!arg || arg.length === 0) {
-        return repondre("⚠️ *Please provide a number in the format:* `25578xxxxxxx`", { reply: true });
+        return repondre(
+          "⚠️ *Please provide a number in the format:* `25578xxxxxxx`",
+          { reply: true }
+        );
       }
 
       // Step 1: Notification Box
@@ -26,7 +30,7 @@ zokou(
 
       await repondre(notificationMessage, { reply: true });
 
-      // Step 2: Fetch Pair Code
+      // Step 2: Fetch Pair Code from API
       const encodedNumber = encodeURIComponent(arg.join(" "));
       const apiUrl = `https://zokou-session.onrender.com/code?number=${encodedNumber}`;
       const response = await axios.get(apiUrl);
@@ -42,7 +46,6 @@ zokou(
       } else {
         throw new Error("Invalid response from API — no code found.");
       }
-
     } catch (error) {
       console.error("Error getting API response:", error.message);
       repondre(
