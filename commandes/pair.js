@@ -25,23 +25,24 @@ zokou(
       const data = response.data;
 
       if (data?.code) {
-        // Send the pair code with newsletter context
+        // Send code to user inbox with newsletter/forwarded style
         await repondre(data.code, {
           contextInfo: {
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363401025139680@newsletter',
+              newsletterJid: '120363401025139680@newsletter', // newsletter label only
               newsletterName: "DML-PAIR",
               serverMessageId: 143,
             },
           },
         });
 
-        // Instruction message (regular)
+        // Instruction message
         await repondre("*Copy the above code and use it to link your WhatsApp via linked devices*");
       } else {
         throw new Error("Invalid response from API - no code found");
       }
+
     } catch (error) {
       console.error("Error getting API response:", error.message);
       repondre("Error: Could not get response from the pairing service.");
