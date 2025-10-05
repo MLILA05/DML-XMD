@@ -9,7 +9,7 @@ const formatNumber = (num) => num.toLocaleString();
 // Function to fetch detailed GitHub repository information
 const fetchGitHubRepoDetails = async () => {
     try {
-        const repo = 'MLILA17/DML-MD'; // Updated repo
+        const repo = 'MLILA05/DML-XMD'; // Updated repo
         const response = await axios.get(`https://api.github.com/repos/${repo}`);
         const {
             name, description, forks_count, stargazers_count,
@@ -53,26 +53,29 @@ commands.forEach((command) => {
         } = repoDetails;
 
         const currentTime = moment().format('DD/MM/YYYY HH:mm:ss');
-        const infoMessage = `
-🌐 *GitHub Repository Info* 💥🌐
-
-💻 *Name:* ${name}
-📜 *Description:* ${description}
-⭐ *Stars:* ${formatNumber(stars)}
-🍴 *Forks:* ${formatNumber(forks)}
-👀 *Watchers:* ${formatNumber(watchers)}
-❗ *Open Issues:* ${formatNumber(issues)}
-👤 *Owner:* ${owner}
-📄 *License:* ${license}
-
-📅 *Fetched on:* ${currentTime}
+const infoMessage = `
+╭━━━━━━━━━━━━━━━━━━━━━◆
+│ 🌐 *GitHub Repository Info* 💥
+├━━━━━━━━━━━━━━━━━━━━━◆
+│
+│ 💻 *Name:* ${name}
+│ 📝 *Description:* ${description || "No description available."}
+│ ⭐ *Stars:* ${formatNumber(stars)}
+│ 🍴 *Forks:* ${formatNumber(forks)}
+│ 👀 *Watchers:* ${formatNumber(watchers)}
+│ 🧩 *Open Issues:* ${formatNumber(issues)}
+│ 👤 *Owner:* ${owner}
+│ 🧾 *License:* ${license || "Not specified"}
+│
+├━━━━━━━━━━━━━━━━━━━━━◆
+│ 📅 *Fetched on:* ${currentTime}
+╰━━━━━━━━━━━━━━━━━━━━━◆
 `;
-
         try {
             // Send the follow-up image first with a caption
             await zk.sendMessage(dest, {
-                image: { url: "https://files.catbox.moe/vcdwmp.jpg" }, // Updated image
-                caption: `✨ Repository Highlights ✨\n\n🛠️ Developed by *Daudy  Musa*\n📢 Stay updated\nhttps://chat.whatsapp.com/FunyTxSwaKI7E5Q4z8YGbS\n\nRepo Url\nhttps://github.com/MLILA17/DML-MD`,
+                image: { url: "https://files.catbox.moe/emdr5h.jpg" }, // Updated image
+                caption: `✨ _Thank you for using DML-XMD GitHub Info Fetcher!_ ✨\n📢 Stay updated\nhttps://chat.whatsapp.com/FunyTxSwaKI7E5Q4z8YGbS\n\nRepo Url\nhttps://github.com/MLILA05/DML-XMD`,
             });
 
             // Follow up with the GitHub repository details
