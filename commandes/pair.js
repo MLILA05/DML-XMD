@@ -6,8 +6,8 @@ zokou({
   aliases: ["session", "pair", "paircode", "qrcode"],
   reaction: "👍🏻",
   categorie: "General",
-}, async (dest, origine, msg) => {
-  const { repondre, arg } = msg;
+}, async (dest, origine, m) => {
+  const { repondre, arg } = m;
 
   try {
     if (!arg || arg.length === 0) {
@@ -15,12 +15,12 @@ zokou({
         "⚠️ *Please provide a number in the format:* `25578xxxxxxx`",
         { 
           contextInfo: {
-            mentionedJid: [msg.sender],
+            mentionedJid: [m.sender],
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
               newsletterJid: "120363401025139680@newsletter",
-              newsletterName: "DML-PAIR",
+              newsletterName: "DML-PLAY",
               serverMessageId: 143,
             },
           }
@@ -32,12 +32,12 @@ zokou({
       "🕓 *Please wait... DML-XMD is generating your Pair Code.*",
       {
         contextInfo: {
-          mentionedJid: [msg.sender],
+          mentionedJid: [m.sender],
           forwardingScore: 999,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
             newsletterJid: "120363401025139680@newsletter",
-            newsletterName: "DML-PAIR",
+            newsletterName: "DML-PLAY",
             serverMessageId: 143,
           },
         }
@@ -54,12 +54,12 @@ zokou({
         `✅ *Your Pair Code is ready!*\n\n🔗 \`\`\`${data.code}\`\`\`\n\n📲 *Copy the above code and link your WhatsApp using Linked Devices section.*`,
         {
           contextInfo: {
-            mentionedJid: [msg.sender],
+            mentionedJid: [m.sender],
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
               newsletterJid: "120363401025139680@newsletter",
-              newsletterName: "DML-PAIR",
+              newsletterName: "DML-PLAY",
               serverMessageId: 143,
             },
           },
@@ -75,12 +75,12 @@ zokou({
       "❌ *Error:* Could not get response from the pairing service.\n\nPlease try again later.",
       {
         contextInfo: {
-          mentionedJid: [msg.sender],
+          mentionedJid: [m.sender],
           forwardingScore: 999,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
             newsletterJid: "120363401025139680@newsletter",
-            newsletterName: "DML-PAIR",
+            newsletterName: "DML-PLAY",
             serverMessageId: 143,
           },
         },
