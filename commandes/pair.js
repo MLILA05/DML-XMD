@@ -9,26 +9,23 @@ zokou(
     categorie: "General",
   },
   async (dest, origine, msg) => {
-    const { repondre, arg, sender } = msg;
+    const { repondre, arg } = msg;
 
     try {
-      // Validate number input
       if (!arg || arg.length === 0) {
         return repondre("*Please provide a number in the format: 25578........*");
       }
 
       await repondre("*Please wait DML-XMD... Generating pair code*");
 
-      // Encode the number for API URL
       const encodedNumber = encodeURIComponent(arg.join(""));
       const apiUrl = `https://zokou-session.onrender.com/code?number=${encodedNumber}`;
 
-      // Fetch pair code from API
       const response = await axios.get(apiUrl);
       const data = response.data;
 
       if (data?.code) {
-        // Send code first
+        // Send the pair code with newsletter context
         await repondre(data.code, {
           contextInfo: {
             isForwarded: true,
@@ -40,12 +37,11 @@ zokou(
           },
         });
 
-        // Instruction message
+        // Instruction message (regular)
         await repondre("*Copy the above code and use it to link your WhatsApp via linked devices*");
       } else {
         throw new Error("Invalid response from API - no code found");
       }
-
     } catch (error) {
       console.error("Error getting API response:", error.message);
       repondre("Error: Could not get response from the pairing service.");
