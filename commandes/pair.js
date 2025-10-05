@@ -36,7 +36,7 @@ zokou(
 `,
           {
             contextInfo: {
-              mentionedJid: [sender],
+              mentionedJid: [m.sender],
               forwardingScore: 999,
               isForwarded: true,
               forwardedNewsletterMessageInfo: {
@@ -50,7 +50,7 @@ zokou(
                 sourceUrl: "https://zokou-session.onrender.com/",
                 mediaType: 1,
                 renderLargerThumbnail: true,
-                thumbnailUrl: "https://i.imgur.com/ON0HxGs.jpeg", // You can replace this with your DML logo
+                thumbnailUrl: "https://files.catbox.moe/emdr5h.jpg", // You can replace this with your Dml logo
               },
             },
           }
