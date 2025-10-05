@@ -1,90 +1,54 @@
 const { zokou } = require("../framework/zokou");
-const axios = require("axios").default;
+const { default: axios } = require("axios");
 
-zokou({
-  nomCom: "pair",
-  aliases: ["session", "pair", "paircode", "qrcode"],
-  reaction: "👍🏻",
-  categorie: "General",
-}, async (dest, origine, m) => {
-  const { repondre, arg } = m;
+zokou(
+  {
+    nomCom: "pair",
+    aliases: ["session", "pair", "paircode", "qrcode"],
+    reaction: "👍🏻",
+    categorie: "General",
+  },
+  async (dest, origine, msg) => {
+    const { repondre, arg, sender } = msg;
 
-  try {
-    if (!arg || arg.length === 0) {
-      return repondre(
-        "⚠️ *Please provide a number in the format:* `25578xxxxxxx`",
-        { 
-          contextInfo: {
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: "120363401025139680@newsletter",
-              newsletterName: "DML-PLAY",
-              serverMessageId: 143,
-            },
-          }
-        }
-      );
-    }
-
-    await repondre(
-      "🕓 *Please wait... DML-XMD is generating your Pair Code.*",
-      {
-        contextInfo: {
-          mentionedJid: [m.sender],
-          forwardingScore: 999,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363401025139680@newsletter",
-            newsletterName: "DML-PLAY",
-            serverMessageId: 143,
-          },
-        }
+    try {
+      // Validate number input
+      if (!arg || arg.length === 0) {
+        return repondre("*Please provide a number in the format: 25578........*");
       }
-    );
 
-    const encodedNumber = encodeURIComponent(arg.join(" "));
-    const apiUrl = `https://zokou-session.onrender.com/code?number=${encodedNumber}`;
-    const response = await axios.get(apiUrl);
-    const data = response.data;
+      await repondre("*Please wait DML-XMD... Generating pair code*");
 
-    if (data?.code) {
-      await repondre(
-        `✅ *Your Pair Code is ready!*\n\n🔗 \`\`\`${data.code}\`\`\`\n\n📲 *Copy the above code and link your WhatsApp using Linked Devices section.*`,
-        {
+      // Encode the number for API URL
+      const encodedNumber = encodeURIComponent(arg.join(""));
+      const apiUrl = `https://zokou-session.onrender.com/code?number=${encodedNumber}`;
+
+      // Fetch pair code from API
+      const response = await axios.get(apiUrl);
+      const data = response.data;
+
+      if (data?.code) {
+        // Send code first
+        await repondre(data.code, {
           contextInfo: {
-            mentionedJid: [m.sender],
-            forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: "120363401025139680@newsletter",
-              newsletterName: "DML-PLAY",
+              newsletterJid: '120363401025139680@newsletter',
+              newsletterName: "DML-PAIR",
               serverMessageId: 143,
             },
           },
-        }
-      );
-    } else {
-      throw new Error("Invalid response from API — no code found.");
-    }
+        });
 
-  } catch (error) {
-    console.error("Pair Code Error:", error.message);
-    await repondre(
-      "❌ *Error:* Could not get response from the pairing service.\n\nPlease try again later.",
-      {
-        contextInfo: {
-          mentionedJid: [m.sender],
-          forwardingScore: 999,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363401025139680@newsletter",
-            newsletterName: "DML-PLAY",
-            serverMessageId: 143,
-          },
-        },
+        // Instruction message
+        await repondre("*Copy the above code and use it to link your WhatsApp via linked devices*");
+      } else {
+        throw new Error("Invalid response from API - no code found");
       }
-    );
+
+    } catch (error) {
+      console.error("Error getting API response:", error.message);
+      repondre("Error: Could not get response from the pairing service.");
+    }
   }
-});
+);
