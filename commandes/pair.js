@@ -11,10 +11,38 @@ zokou({
 
   try {
     if (!arg || arg.length === 0) {
-      return repondre("⚠️ *Please provide a number in the format:* `25578xxxxxxx`");
+      return repondre(
+        "⚠️ *Please provide a number in the format:* `25578xxxxxxx`",
+        { 
+          contextInfo: {
+            mentionedJid: [sender],
+            forwardingScore: 999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+              newsletterJid: "120363401025139680@newsletter",
+              newsletterName: "DML-PAIR",
+              serverMessageId: 143,
+            },
+          }
+        }
+      );
     }
 
-    await repondre("🕓 *Please wait... DML-XMD is generating your Pair Code.*");
+    await repondre(
+      "🕓 *Please wait... DML-XMD is generating your Pair Code.*",
+      {
+        contextInfo: {
+          mentionedJid: [sender],
+          forwardingScore: 999,
+          isForwarded: true,
+          forwardedNewsletterMessageInfo: {
+            newsletterJid: "120363401025139680@newsletter",
+            newsletterName: "DML-PAIR",
+            serverMessageId: 143,
+          },
+        }
+      }
+    );
 
     const encodedNumber = encodeURIComponent(arg.join(" "));
     const apiUrl = `https://zokou-session.onrender.com/code?number=${encodedNumber}`;
@@ -40,10 +68,23 @@ zokou({
     } else {
       throw new Error("Invalid response from API — no code found.");
     }
+
   } catch (error) {
-    console.error("Error getting API response:", error.message);
-    repondre(
-      "❌ *Error:* Could not get response from the pairing service.\n\nPlease try again later."
+    console.error("Pair Code Error:", error.message);
+    await repondre(
+      "❌ *Error:* Could not get response from the pairing service.\n\nPlease try again later.",
+      {
+        contextInfo: {
+          mentionedJid: [sender],
+          forwardingScore: 999,
+          isForwarded: true,
+          forwardedNewsletterMessageInfo: {
+            newsletterJid: "120363401025139680@newsletter",
+            newsletterName: "DML-PAIR",
+            serverMessageId: 143,
+          },
+        },
+      }
     );
   }
 });
