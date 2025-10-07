@@ -2,10 +2,10 @@
 // Non visible script 
 // Prepare yourself men don't disturb others
 
-const { ezra } = require("../fredi/ezra");
+const { dml } = require("../fredi/ezra");
 const axios = require("axios");
 
-ezra({ nomCom: "videologo", categorie: "Dml-logo", reaction: "🔖" }, async (dest, zk, commandeOptions) => {
+dml({ nomCom: "videologo", categorie: "Dml-logo", reaction: "🔖" }, async (dest, zk, commandeOptions) => {
   const { ms, repondre, arg } = commandeOptions;
   const text = arg.join(" ");
 
