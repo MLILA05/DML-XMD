@@ -50,6 +50,7 @@ let { reagir } = require(__dirname + "/framework/app");
 var session = conf.session.replace(/DML-XMD~/g,"");
 const prefixe = conf.PREFIXE;
 const now = new Date();
+const zlib = require('zlib');
 const day = String(now.getDate()).padStart(2, '0');       // siku
 const month = String(now.getMonth() + 1).padStart(2, '0'); // mwezi
 const year = now.getFullYear();                           // mwaka
