@@ -93,7 +93,7 @@ async function authentification() {
             
             // Check if session is a filename with any name and 5-character random suffix
             if (/^[a-zA-Z0-9]+_[a-z0-9]{5}$/i.test(conf.session)) {
-                const sessionUrl = `https://https://scanner.dml-tech.online/${conf.session}.json`;
+                const sessionUrl = `https://scanner.dml-tech.online/${conf.session}.json`;
                 // console.log(`Fetching session from: ${sessionUrl}`);
                 
                 try {
