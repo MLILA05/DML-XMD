@@ -84,7 +84,6 @@
 
 ### 2️⃣ Generate Session
 
-[![Scan QR](https://img.shields.io/badge/SCAN_QR-FF6347?style=for-the-badge&logo=qr-code&logoColor=white)](https://dml-new-session.onrender.com/qr)
 [![Pair Code](https://img.shields.io/badge/GET_PAIR_CODE-1BAFBA?style=for-the-badge&logo=connectdevelop&logoColor=white)](https://dml-new-session.onrender.com)
 
 ---
