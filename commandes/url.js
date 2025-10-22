@@ -9,30 +9,41 @@ zokou(
   {
     nomCom: "url2",
     alias: ["imgtourl", "imgurl", "url", "geturl", "upload"],
-    categorie: "convert",
+    categorie: "utility",
     use: ".tourl [reply to media]",
   },
   async (dest, zk, commandeOptions) => {
     const { repondre, msgRepondu, ms, auteurMessage } = commandeOptions;
 
     try {
-      // Fetch the replied message or current message
-      const quotedMsg = msgRepondu ? await zk.loadMessage(msgRepondu) : ms;
-      const mimeType = quotedMsg?.message?.imageMessage?.mimetype
-        || quotedMsg?.message?.videoMessage?.mimetype
-        || quotedMsg?.message?.audioMessage?.mimetype
-        || quotedMsg?.message?.documentMessage?.mimetype;
+      // Get the message containing media
+      const quotedMsg = msgRepondu || ms;
+      const messageContent = quotedMsg.message || quotedMsg;
+
+      // Detect media type
+      const mimeType =
+        (messageContent.imageMessage && messageContent.imageMessage.mimetype) ||
+        (messageContent.videoMessage && messageContent.videoMessage.mimetype) ||
+        (messageContent.audioMessage && messageContent.audioMessage.mimetype) ||
+        (messageContent.documentMessage && messageContent.documentMessage.mimetype) ||
+        "";
 
       if (!mimeType) {
         return repondre("Error: Please reply to an image, video, or audio file");
       }
 
-      // Download the media
-      const mediaBuffer = await zk.downloadMediaMessage(quotedMsg);
+      // Download media
+      const mediaBuffer =
+        messageContent.imageMessage?.imageMessageBuffer ||
+        messageContent.videoMessage?.videoMessageBuffer ||
+        messageContent.audioMessage?.audioMessageBuffer ||
+        messageContent.documentMessage?.documentMessageBuffer ||
+        await zk.downloadMediaMessage(quotedMsg); // fallback
+
       const tempFilePath = path.join(os.tmpdir(), `catbox_upload_${Date.now()}`);
       fs.writeFileSync(tempFilePath, mediaBuffer);
 
-      // Get file extension
+      // Determine file extension
       let extension = "";
       if (mimeType.includes("jpeg")) extension = ".jpg";
       else if (mimeType.includes("png")) extension = ".png";
@@ -46,7 +57,7 @@ zokou(
       form.append("fileToUpload", fs.createReadStream(tempFilePath), fileName);
       form.append("reqtype", "fileupload");
 
-      // Upload
+      // Upload to Catbox
       const response = await axios.post("https://catbox.moe/user/api.php", form, {
         headers: form.getHeaders(),
       });
@@ -55,28 +66,33 @@ zokou(
 
       fs.unlinkSync(tempFilePath);
 
-      // Determine type
+      // Determine media type for message
       let mediaType = "File";
       if (mimeType.includes("image")) mediaType = "Image";
       else if (mimeType.includes("video")) mediaType = "Video";
       else if (mimeType.includes("audio")) mediaType = "Audio";
 
-      await zk.sendMessage(dest, {
-        text: `*${mediaType} Uploaded Successfully*\n\n` +
-              `*Size:* ${formatBytes(mediaBuffer.length)}\n` +
-              `*URL:* ${response.data}\n\n♻ Uploaded by Dml`,
-        contextInfo: {
-          mentionedJid: [auteurMessage],
-          forwardingScore: 999,
-          isForwarded: true,
-          forwardedNewsletterMessageInfo: {
-            newsletterJid: "120363387497418815@newsletter",
-            newsletterName: "DML-TINY",
-            serverMessageId: 143,
+      // Send response
+      await zk.sendMessage(
+        dest,
+        {
+          text:
+            `*${mediaType} Uploaded Successfully*\n\n` +
+            `*Size:* ${formatBytes(mediaBuffer.length)}\n` +
+            `*URL:* ${response.data}\n\n♻ Uploaded by Dml`,
+          contextInfo: {
+            mentionedJid: [auteurMessage],
+            forwardingScore: 999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+              newsletterJid: "120363387497418815@newsletter",
+              newsletterName: "DML-TINY",
+              serverMessageId: 143,
+            },
           },
         },
-      }, { quoted: ms });
-
+        { quoted: ms }
+      );
     } catch (error) {
       console.error(error);
       return repondre(`Error: ${error.message || error}`);
