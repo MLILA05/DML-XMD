@@ -5,7 +5,7 @@ const { jidDecode } = require("@whiskeysockets/baileys");
 zokou(
   {
     nomCom: "getpp",
-    categorie: "Tools",
+    categorie: "Fun",
   },
   async (dest, zk, commandeOptions) => {
     const { ms, repondre, auteurMessage, nomAuteurMessage, msgRepondu, auteurMsgRepondu } = commandeOptions;
