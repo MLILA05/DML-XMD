@@ -11,7 +11,7 @@ zokou(
     categorie: "Misc",
   },
   async (dest, zk, commandeOptions) => {
-    const { repondre, auteurMessage, isOwner } = commandeOptions;
+    const { repondre, isOwner } = commandeOptions;
 
     if (!isOwner) return repondre("❌ This command is only for the bot owner.");
 
@@ -24,7 +24,7 @@ zokou(
       );
       const latestCommitHash = commitData.sha;
 
-      // Get stored commit hash from database
+      // Get the stored commit hash from database
       const currentHash = await getCommitHash();
 
       if (latestCommitHash === currentHash) {
@@ -33,7 +33,7 @@ zokou(
 
       await repondre("🚀 Updating DML-XMD Bot...");
 
-      // Download the latest code from GitHub
+      // Download the latest code
       const zipPath = path.join(__dirname, "latest.zip");
       const { data: zipData } = await axios.get(
         "https://github.com/MLILA05/DML-XMD/archive/main.zip",
@@ -41,22 +41,22 @@ zokou(
       );
       fs.writeFileSync(zipPath, zipData);
 
-      // Extract ZIP contents
+      // Extract ZIP file
       await repondre("📦 Extracting the latest code...");
       const extractPath = path.join(__dirname, "latest");
       const zip = new AdmZip(zipPath);
       zip.extractAllTo(extractPath, true);
 
-      // Copy new files while preserving config.js & app.json
+      // Copy updated files, preserving config.js and app.json
       await repondre("🔄 Replacing files...");
       const sourcePath = path.join(extractPath, "DML-XMD-main");
       const destinationPath = path.join(__dirname, "..");
       copyFolderSync(sourcePath, destinationPath);
 
-      // Save new commit hash
+      // Save the latest commit hash
       await setCommitHash(latestCommitHash);
 
-      // Cleanup temporary files
+      // Cleanup
       fs.unlinkSync(zipPath);
       fs.rmSync(extractPath, { recursive: true, force: true });
 
@@ -69,18 +69,16 @@ zokou(
   }
 );
 
-// Helper: Copy directories & preserve specific files
+// Helper: Copy directories and preserve config.js & app.json
 function copyFolderSync(source, target) {
-  if (!fs.existsSync(target)) {
-    fs.mkdirSync(target, { recursive: true });
-  }
+  if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
 
   const items = fs.readdirSync(source);
   for (const item of items) {
     const srcPath = path.join(source, item);
     const destPath = path.join(target, item);
 
-    // Preserve config.js and app.json
+    // Preserve custom settings
     if (item === "config.js" || item === "app.json") {
       console.log(`Skipping ${item} to preserve custom settings.`);
       continue;
