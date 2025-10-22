@@ -33,13 +33,7 @@ zokou(
       }
 
       // Download media
-      const mediaBuffer =
-        messageContent.imageMessage?.imageMessageBuffer ||
-        messageContent.videoMessage?.videoMessageBuffer ||
-        messageContent.audioMessage?.audioMessageBuffer ||
-        messageContent.documentMessage?.documentMessageBuffer ||
-        await zk.downloadMediaMessage(quotedMsg); // fallback
-
+      const mediaBuffer = await zk.downloadMediaMessage(quotedMsg);
       const tempFilePath = path.join(os.tmpdir(), `catbox_upload_${Date.now()}`);
       fs.writeFileSync(tempFilePath, mediaBuffer);
 
@@ -52,12 +46,12 @@ zokou(
 
       const fileName = `file${extension}`;
 
-      // Prepare form data
+      // Prepare form data for Catbox
       const form = new FormData();
       form.append("fileToUpload", fs.createReadStream(tempFilePath), fileName);
       form.append("reqtype", "fileupload");
 
-      // Upload to Catbox
+      // Upload
       const response = await axios.post("https://catbox.moe/user/api.php", form, {
         headers: form.getHeaders(),
       });
@@ -73,26 +67,13 @@ zokou(
       else if (mimeType.includes("audio")) mediaType = "Audio";
 
       // Send response
-      await zk.sendMessage(
-        dest,
-        {
-          text:
-            `*${mediaType} Uploaded Successfully*\n\n` +
-            `*Size:* ${formatBytes(mediaBuffer.length)}\n` +
-            `*URL:* ${response.data}\n\n♻ Uploaded by Dml`,
-          contextInfo: {
-            mentionedJid: [auteurMessage],
-            forwardingScore: 999,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: "120363387497418815@newsletter",
-              newsletterName: "DML-TINY",
-              serverMessageId: 143,
-            },
-          },
-        },
-        { quoted: ms }
-      );
+      await zk.sendMessage(dest, {
+        text:
+          `*${mediaType} Uploaded Successfully*\n\n` +
+          `*Size:* ${formatBytes(mediaBuffer.length)}\n` +
+          `*URL:* ${response.data}\n\n♻ Uploaded by Dml `,
+      }, { quoted: ms });
+
     } catch (error) {
       console.error(error);
       return repondre(`Error: ${error.message || error}`);
