@@ -22,7 +22,7 @@ zokou(
       const link = arg[0];
       console.log("URL to shorten:", link);
 
-      const response = await axios.get(`https://tinyurl.com/api-create.php?url=${link}`);
+      const response = await axios.get(`https://url.dml-tech.online?url=${link}`);
       const shortenedUrl = response.data;
 
       console.log("Shortened URL:", shortenedUrl);
