@@ -8,78 +8,78 @@ const path = require("path");
 zokou(
   {
     nomCom: "url2",
-    alias: ["imgtourl", "imgurl", "url2", "geturl", "upload"],
+    alias: ["imgtourl", "imgurl", "url", "geturl", "upload"],
     categorie: "convert",
     use: ".tourl [reply to media]",
   },
   async (dest, zk, commandeOptions) => {
-    const { repondre, msgRepondu, auteurMessage, ms } = commandeOptions;
+    const { repondre, msgRepondu, ms, auteurMessage } = commandeOptions;
 
     try {
-      // Check if quoted message exists and has media
-      const quotedMsg = msgRepondu || commandeOptions.msg || commandeOptions;
-      const mimeType = (quotedMsg.msg || quotedMsg).mimetype || "";
+      // Fetch the replied message or current message
+      const quotedMsg = msgRepondu ? await zk.loadMessage(msgRepondu) : ms;
+      const mimeType = quotedMsg?.message?.imageMessage?.mimetype
+        || quotedMsg?.message?.videoMessage?.mimetype
+        || quotedMsg?.message?.audioMessage?.mimetype
+        || quotedMsg?.message?.documentMessage?.mimetype;
 
       if (!mimeType) {
-        throw "Please reply to an image, video, or audio file";
+        return repondre("Error: Please reply to an image, video, or audio file");
       }
 
       // Download the media
-      const mediaBuffer = await quotedMsg.download();
+      const mediaBuffer = await zk.downloadMediaMessage(quotedMsg);
       const tempFilePath = path.join(os.tmpdir(), `catbox_upload_${Date.now()}`);
       fs.writeFileSync(tempFilePath, mediaBuffer);
 
-      // Get file extension based on mime type
+      // Get file extension
       let extension = "";
-      if (mimeType.includes("image/jpeg")) extension = ".jpg";
-      else if (mimeType.includes("image/png")) extension = ".png";
+      if (mimeType.includes("jpeg")) extension = ".jpg";
+      else if (mimeType.includes("png")) extension = ".png";
       else if (mimeType.includes("video")) extension = ".mp4";
       else if (mimeType.includes("audio")) extension = ".mp3";
 
       const fileName = `file${extension}`;
 
-      // Prepare form data for Catbox
+      // Prepare form data
       const form = new FormData();
       form.append("fileToUpload", fs.createReadStream(tempFilePath), fileName);
       form.append("reqtype", "fileupload");
 
-      // Upload to Catbox
+      // Upload
       const response = await axios.post("https://catbox.moe/user/api.php", form, {
         headers: form.getHeaders(),
       });
 
-      if (!response.data) {
-        throw "Error uploading to Catbox";
-      }
+      if (!response.data) throw "Error uploading to Catbox";
 
-      const mediaUrl = response.data;
       fs.unlinkSync(tempFilePath);
 
-      // Determine media type for response
+      // Determine type
       let mediaType = "File";
       if (mimeType.includes("image")) mediaType = "Image";
       else if (mimeType.includes("video")) mediaType = "Video";
       else if (mimeType.includes("audio")) mediaType = "Audio";
 
-      // Send response with forwarded-like context
       await zk.sendMessage(dest, {
         text: `*${mediaType} Uploaded Successfully*\n\n` +
               `*Size:* ${formatBytes(mediaBuffer.length)}\n` +
-              `*URL:* ${mediaUrl}\n\n♻ Uploaded by Dml`,
+              `*URL:* ${response.data}\n\n♻ Uploaded by Dml`,
         contextInfo: {
           mentionedJid: [auteurMessage],
           forwardingScore: 999,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
             newsletterJid: "120363387497418815@newsletter",
-            newsletterName: "DML-URL",
+            newsletterName: "DML-TINY",
             serverMessageId: 143,
           },
         },
       }, { quoted: ms });
+
     } catch (error) {
       console.error(error);
-      await repondre(`Error: ${error.message || error}`);
+      return repondre(`Error: ${error.message || error}`);
     }
   }
 );
