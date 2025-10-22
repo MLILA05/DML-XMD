@@ -8,12 +8,12 @@ const { setCommitHash, getCommitHash } = require("../bdd/updateDB");
 zokou(
   {
     nomCom: "update",
-    categorie: "Misc",
+    categorie: "misc",
   },
   async (dest, zk, commandeOptions) => {
     const { repondre, isOwner } = commandeOptions;
 
-    if (!isOwner) return repondre("❌ This command is only for the bot owner.");
+    if (!isOwner) return repondre("This command is only for the bot owner.");
 
     try {
       await repondre("🔍 Checking for DML-XMD updates...");
@@ -24,7 +24,7 @@ zokou(
       );
       const latestCommitHash = commitData.sha;
 
-      // Get the stored commit hash from database
+      // Get the stored commit hash from the database
       const currentHash = await getCommitHash();
 
       if (latestCommitHash === currentHash) {
@@ -53,7 +53,7 @@ zokou(
       const destinationPath = path.join(__dirname, "..");
       copyFolderSync(sourcePath, destinationPath);
 
-      // Save the latest commit hash
+      // Save the latest commit hash to the database
       await setCommitHash(latestCommitHash);
 
       // Cleanup
@@ -64,21 +64,23 @@ zokou(
       process.exit(0);
     } catch (error) {
       console.error("Update error:", error);
-      repondre("❌ Update failed. Please try manually.");
+      return repondre("❌ Update failed. Please try manually.");
     }
   }
 );
 
-// Helper: Copy directories and preserve config.js & app.json
+// Helper function to copy directories while preserving config.js and app.json
 function copyFolderSync(source, target) {
-  if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
+  if (!fs.existsSync(target)) {
+    fs.mkdirSync(target, { recursive: true });
+  }
 
   const items = fs.readdirSync(source);
   for (const item of items) {
     const srcPath = path.join(source, item);
     const destPath = path.join(target, item);
 
-    // Preserve custom settings
+    // Skip config.js and app.json
     if (item === "config.js" || item === "app.json") {
       console.log(`Skipping ${item} to preserve custom settings.`);
       continue;
