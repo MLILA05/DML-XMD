@@ -25,8 +25,8 @@ async function uploadToCatbox(filePath) {
 
 // Command to upload image, video, or audio file
 zokou({
-  'nomCom': 'url2',       // Command to trigger the function
-  'categorie': "General", // Command category
+  'nomCom': 'url1',       // Command to trigger the function
+  'categorie': "convert", // Command category
   'reaction': '⚙️'    // Reaction to use on command
 }, async (groupId, client, context) => {
   const { msgRepondu, repondre } = context;
