@@ -7,8 +7,8 @@ const path = require("path");
 
 zokou(
   {
-    nomCom: "url",
-    alias: ["imgtourl", "imgurl", "url", "geturl", "upload"],
+    nomCom: "url2",
+    alias: ["imgtourl", "imgurl", "url2", "geturl", "upload"],
     categorie: "convert",
     use: ".tourl [reply to media]",
   },
