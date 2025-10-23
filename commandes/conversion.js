@@ -1,3 +1,4 @@
+// dml-tech.online
 const { Sticker, createSticker, StickerTypes } = require('wa-sticker-formatter');
 const { zokou } = require("../framework/zokou");
 const traduire = require("../framework/traduction");
@@ -347,7 +348,7 @@ zokou({ nomCom: "trt", categorie: "Conversion", reaction: "👨🏿‍💻" }, a
 }) ;
 
 
-zokou({ nomCom: "url", categorie: "Conversion", reaction: "👨🏿‍💻" }, async (origineMessage, zk, commandeOptions) => {
+zokou({ nomCom: "url1", categorie: "Conversion", reaction: "👨🏿‍💻" }, async (origineMessage, zk, commandeOptions) => {
   const { msgRepondu, repondre } = commandeOptions;
 
   if (!msgRepondu) {
@@ -372,7 +373,7 @@ zokou({ nomCom: "url", categorie: "Conversion", reaction: "👨🏿‍💻" }, a
 
       repondre(telegraphUrl);
   } catch (error) {
-      console.error('Erreur lors de la création du lien Telegraph :', error);
+      console.error('Error lors de la création du lien Telegraph :', error);
       repondre('Opps error');
   }
 });
