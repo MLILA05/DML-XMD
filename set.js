@@ -7,6 +7,11 @@ const databasePath = path.join(__dirname, './database.db');
 const DATABASE_URL = process.env.DATABASE_URL === undefined
     ? databasePath
     : process.env.DATABASE_URL;
+module.exports = {
+  BOT_NAME: "DML-MD",
+  DESCRIPTION: "Your bot description here",
+  OWNER_NAME: "Your Name"
+};
 module.exports = { session: process.env.SESSION_ID || '',
     PREFIXE: process.env.PREFIX || ".",
     OWNER_NAME: process.env.OWNER_NAME || "DML",
