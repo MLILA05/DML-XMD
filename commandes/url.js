@@ -29,7 +29,7 @@ async function uploadToCatbox(filePath) {
 zokou(
   {
     nomCom: "url",
-    categorie: "conversion",
+    categorie: "Conversion",
     reaction: "⚙️",
   },
   async (dest, zk, commandeOptions) => {
