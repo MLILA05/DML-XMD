@@ -55,7 +55,7 @@ zokou({
 │ 🚀 Started: ${startTime.toLocaleString()}
 │
 ╰────────────────⳹
-${config.DESCRIPTION || "DML-MD Bot"}`;
+${config.DESCRIPTION || "DML-XMD Bot"}`;
 
   // Style 2: Minimalist
   const style2 = `•——[ UPTIME ]——•
@@ -71,7 +71,7 @@ ${config.DESCRIPTION || "DML-MD Bot"}`;
   ♢ Running: ${uptime}
   ♢ Since: ${startTime.toLocaleDateString()}
 
-  ${config.DESCRIPTION || "DML-MD Bot"}`;
+  ${config.DESCRIPTION || "dml-tech.online"}`;
 
   // Style 4: Code Style
   const style4 = `┌──────────────────────┐
@@ -87,7 +87,7 @@ ${config.DESCRIPTION || "DML-MD Bot"}`;
 
   ⏳ ${uptime}
   🕰️ ${startTime.toLocaleString()}
-${config.DESCRIPTION || "DML-MD Bot"}`;
+${config.DESCRIPTION || "We Are Unstoppable"}`;
 
   // Style 6: Retro Terminal
   const style6 = `╔══════════════════════╗
@@ -116,7 +116,7 @@ ${config.DESCRIPTION || "DML-MD Bot"}`;
 🟢 Online for: ${uptime}
 📅 Since: ${startTime.toLocaleString()}
 
-${config.DESCRIPTION || "DML-MD Bot"}`;
+${config.DESCRIPTION || "Watu ni Mtaji Tosha"}`;
 
   // Style 9: Fancy List
   const style9 = `╔♫═⏱️═♫══════════╗
@@ -137,7 +137,7 @@ ${config.DESCRIPTION || "DML-MD Bot"}`;
 ◈ Start Time: ${startTime.toLocaleString()}
 ◈ Stability: 100%
 ◈ Version:  4.0.0
-${config.DESCRIPTION || "DML-MD Bot"}`;
+${config.DESCRIPTION || "Enjoy Using DML-XMD"}`;
 
   const styles = [style1, style2, style3, style4, style5, style6, style7, style8, style9, style10];
   const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
