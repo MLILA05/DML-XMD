@@ -1,18 +1,16 @@
 const { zokou } = require("../framework/zokou");
 const { Catbox } = require("node-catbox");
-const fs = require("fs-extra");
-const { downloadAndSaveMediaMessage } = require("@whiskeysockets/baileys");
-const config = require("../set");
+const fs = require('fs-extra');
+const { downloadAndSaveMediaMessage } = require('@whiskeysockets/baileys');
 
-// Initialize Catbox client
+// Initialize Catbox
 const catbox = new Catbox();
 
-// Function to upload a file to Catbox
+// Function to upload a file to Catbox and return the URL
 async function uploadToCatbox(filePath) {
   if (!fs.existsSync(filePath)) {
     throw new Error("File does not exist");
   }
-
   try {
     const uploadResult = await catbox.uploadFile({ path: filePath });
     if (uploadResult) {
@@ -25,69 +23,77 @@ async function uploadToCatbox(filePath) {
   }
 }
 
-// Zokou command
-zokou(
-  {
-    nomCom: "url1",
-    categorie: "conversion",
-    reaction: "⚙️",
-  },
-  async (dest, zk, ctx) => {
-    const { msgRepondu, repondre } = ctx;
+// Command to upload image, video, or audio file
+zokou({
+  'nomCom': 'url1',       // Command to trigger the function
+  'categorie': "convertion", // Command category
+  'reaction': '⚙️'    // Reaction to use on command
+}, async (groupId, client, context) => {
+  const { msgRepondu, repondre } = context;
 
-    // Ensure user replies to a media message
-    if (!msgRepondu) {
-      return repondre("Please reply to an image, video, or audio file.");
-    }
+  // If no message (image/video/audio) is mentioned, prompt user
+  if (!msgRepondu) {
+    return repondre("Please mention an image, video, or audio.");
+  }
 
-    let mediaPath;
+  let mediaPath;
 
-    try {
-      // Detect media type and download
-      if (msgRepondu.videoMessage) {
-        mediaPath = await downloadAndSaveMediaMessage(msgRepondu.videoMessage);
-      } else if (msgRepondu.gifMessage) {
-        mediaPath = await downloadAndSaveMediaMessage(msgRepondu.gifMessage);
-      } else if (msgRepondu.stickerMessage) {
-        mediaPath = await downloadAndSaveMediaMessage(msgRepondu.stickerMessage);
-      } else if (msgRepondu.documentMessage) {
-        mediaPath = await downloadAndSaveMediaMessage(msgRepondu.documentMessage);
-      } else if (msgRepondu.imageMessage) {
-        mediaPath = await downloadAndSaveMediaMessage(msgRepondu.imageMessage);
-      } else if (msgRepondu.audioMessage) {
-        mediaPath = await downloadAndSaveMediaMessage(msgRepondu.audioMessage);
-      } else {
-        return repondre("Please reply to an image, video, or audio file.");
-      }
+  // Check if the message contains a video
+  if (msgRepondu.videoMessage) {
+    mediaPath = await client.downloadAndSaveMediaMessage(msgRepondu.videoMessage);
+  }
+ else if (msgRepondu.gifMessage) {
+    mediaPath = await client.downloadAndSaveMediaMessage(msgRepondu.gifMessage);
+  }
+ else if (msgRepondu.stickerMessage) {
+    mediaPath = await client.downloadAndSaveMediaMessage(msgRepondu.stickerMessage);
+  }
+else if (msgRepondu.documentMessage) {
+    mediaPath = await client.downloadAndSaveMediaMessage(msgRepondu.documentMessage);
+  }
+  // Check if the message contains an image
+  else if (msgRepondu.imageMessage) {
+    mediaPath = await client.downloadAndSaveMediaMessage(msgRepondu.imageMessage);
+  }
+  // Check if the message contains an audio file
+  else if (msgRepondu.audioMessage) {
+    mediaPath = await client.downloadAndSaveMediaMessage(msgRepondu.audioMessage);
+  } else {
+    // If no media (image, video, or audio) is found, prompt user
+    return repondre("Please mention an image, video, or audio.");
+  }
 
-      // Upload to Catbox
-      const fileUrl = await uploadToCatbox(mediaPath);
+  try {
+    // Upload the media to Catbox and get the URL
+    const fileUrl = await uploadToCatbox(mediaPath);
 
-      // Delete local file after upload
-      fs.unlinkSync(mediaPath);
+    // Delete the local media file after upload
+    fs.unlinkSync(mediaPath);
+
+    // Respond with the URL of the uploaded file
+    repondre(fileUrl);
 
       // Send response with forwarded info
       await zk.sendMessage(
         dest,
         {
           text:
-            `✅ *File Uploaded Successfully*\n\n📎 *URL:* ${fileUrl}\n\n> © Uploaded by DML 💜`,
+            `✅ *File Uploaded Successfully*\n\n📎 *URL:* ${fileUrl}\n\n♻ Uploaded by DML `,
           contextInfo: {
             mentionedJid: [],
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
               newsletterJid: "120363387497418815@newsletter",
-              newsletterName: config.OWNER_NAME || "DML-URL",
+              newsletterName: config.OWNER_NAME || "DML-MD",
               serverMessageId: 143,
             },
           },
         },
         { quoted: ctx.ms }
       );
-    } catch (error) {
-      console.error("Error while uploading to Catbox:", error);
-      return repondre("⚠️ Sorry, an error occurred while uploading your file.");
-    }
+  } catch (error) {
+    console.error("Error while creating your URL:", error);
+    repondre("Oops, there was an error.");
   }
-);
+});
