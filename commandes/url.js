@@ -28,7 +28,7 @@ async function uploadToCatbox(filePath) {
 // Command to upload multiple media files
 zokou(
   {
-    nomCom: "url1",
+    nomCom: "url",
     categorie: "conversion",
     reaction: "⚙️",
   },
