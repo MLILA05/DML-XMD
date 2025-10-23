@@ -1,3 +1,4 @@
+//contac me contact.dml-tech.online
 const { zokou } = require("../framework/zokou");
 const { Catbox } = require("node-catbox");
 const fs = require("fs-extra");
@@ -27,7 +28,7 @@ async function uploadToCatbox(filePath) {
 // Command to upload multiple media files
 zokou(
   {
-    nomCom: "url3",
+    nomCom: "url1",
     categorie: "convertion",
     reaction: "⚙️",
   },
