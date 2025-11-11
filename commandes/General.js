@@ -61,7 +61,7 @@ zokou({ nomCom: "dev", categorie: "General", reaction: "🚘" }, async (dest, zk
       // Ajoute d'autres développeurs ici avec leur nom et numéro
     ];
 
-    let message = "WELCOME TO DML MD HELP CENTER! ASK FOR HELP FROM ANY OF THE DEVELOPERS BELOW:\n\n";
+    let message = "WELCOME TO DML XMD HELP CENTER! ASK FOR HELP FROM ANY OF THE DEVELOPERS BELOW:\n\n";
     for (const dev of devs) {
       message += `----------------\n• ${dev.nom} : https://wa.me/${dev.numero}\n`;
     }
@@ -95,7 +95,7 @@ else {
 zokou({ nomCom: "support", categorie: "General" }, async (dest, zk, commandeOptions) => {
   const { ms, repondre, auteurMessage, } = commandeOptions; 
  
-  repondre("THANK YOU FOR CHOOSING DML-MD, HERE ARE OUR SUPPORTIVE LINKS\n\n ☉ CHANNEL LINK IS HERE ☉ \n\n❒⁠⁠⁠⁠[https://whatsapp.com/channel/0029Vb2hoPpDZ4Lb3mSkVI3C] \n\n ☉ GROUP LINK IS HERE ☉\n\n❒⁠⁠⁠⁠[https://chat.whatsapp.com/FunyTxSwaKI7E5Q4z8YGbS] \n\n ☉YOUTUBE LINK IS HERE ☉\n\n❒⁠⁠⁠⁠[https://www.youtube.com/@DaudyMussa-h1r] \n\n\nCreated by DML MD") 
-  await zk.sendMessage(auteurMessage,{text : `THANK YOU FOR CHOOSING DML-MD,MAKE SURE YOU FOLLOW THESE LINKS. `},{quoted :ms})
+  repondre("THANK YOU FOR CHOOSING DML-XMD, HERE ARE OUR SUPPORTIVE LINKS\n\n 🌍 CHANNEL LINK IS HERE 🌍 \n\n🫂⁠⁠⁠⁠[https://whatsapp.com/channel/0029VbBf4Y52kNFkFCx2pF1H] \n\n 🛑 GROUP LINK IS HERE 🛑\n\n⁠⁠⁠⁠🌍[https://chat.whatsapp.com/FunyTxSwaKI7E5Q4z8YGbS] \n\n 🌍YOUTUBE LINK IS HERE 🌍\n\n🔥⁠⁠⁠⁠[https://www.youtube.com/@DaudyMussa-h1r] \n\n\nCreated by DML-XMD") 
+  await zk.sendMessage(auteurMessage,{text : `THANK YOU FOR CHOOSING DML-XMD,MAKE SURE YOU FOLLOW THESE LINKS. `},{quoted :ms})
 
 })
