@@ -2,12 +2,12 @@
   "name": "dml-xmd",
   "version": "2.0.0",
   "description": "",
-  "main": "dml.js",
+  "main": "Dml.js",
   "scripts": {
-    "test": "node dml.js",
-    "s": "node dml.js",
-    "toshtech": "pm2 start dml.js --attach",
-    "toshtech": "pm2 start dml.js --attach",
+    "test": "node Dml.js",
+    "s": "node Dml.js",
+    "toshtech": "pm2 start Dml.js --attach",
+    "toshtech": "pm2 start Dml.js --attach",
     "c": "tsc"
   },
   "keywords": [
