@@ -149,7 +149,7 @@ ${config.DESCRIPTION || "Enjoy Using DML-XMD"}`;
       forwardingScore: 999,
       isForwarded: true,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: "120363387497418815@newsletter",
+        newsletterJid: "120363403958418756@newsletter",
         newsletterName: config.OWNER_NAME || "DML-MD",
         serverMessageId: 143
       }
@@ -174,5 +174,5 @@ zokou({
   const url = arg.join(" ");
   const apiUrl = `https://api.maher-zubair.adams/misc/sstab?url=${url}&dimension=720x720`;
   const buffer = await getBuffer(apiUrl);
-  await zk.sendMessage(dest, { image: buffer }, { caption: "*Powered by DML-MD*" }, { quoted: ms });
+  await zk.sendMessage(dest, { image: buffer }, { caption: "*Powered by DML-XMD*" }, { quoted: ms });
 });
