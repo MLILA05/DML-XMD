@@ -16,7 +16,8 @@ zokou(
     if (!isOwner) return repondre("❌ This command is only for the bot owner.");
 
     try {
-      await repondre("🔍 Checking for DML-XMD updates...");
+      console.log("🔍 Checking for DML-XMD updates...");
+await zk.sendMessage(dest, { text: "🔍 Checking for DML-XMD updates..." });
 
       // Fetch the latest commit hash from GitHub
       const { data: commitData } = await axios.get(
