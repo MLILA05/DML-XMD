@@ -1,7 +1,7 @@
 const { zokou } = require("../framework/zokou");
 const config = require("../set");
 
-// PING COMMAND
+// PING COMMAND BY DML
 zokou({
   nomCom: "ping",
   alias: ["speed", "pong"],
@@ -33,7 +33,7 @@ zokou({
     const end = new Date().getTime();
     const responseTime = (end - start) / 1000;
 
-    const text = `╭━━〔 🛸 𝗣𝗜𝗡𝗚 𝗧𝗘𝗦𝗧 〕━━╮
+    const text = `╭━━〔 💥 𝗣𝗜𝗡𝗚 𝗧𝗘𝗦𝗧 〕━━╮
 ┃ 🤖 *BOT* : *DML-XMD*
 ┃ ⏳ *PING* : *${responseTime.toFixed(2)}s ${reactionEmoji}*
 ╰━━━━━━━━━━━━━━━━━━╯
