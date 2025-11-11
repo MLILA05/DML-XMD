@@ -134,8 +134,8 @@ ${config.DESCRIPTION}`;
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: "120363387497418815@newsletter",
-              newsletterName: config.OWNER_NAME || "DML-MD",
+              newsletterJid: "120363403958418756@newsletter",
+              newsletterName: config.OWNER_NAME || "DML-XMD",
               serverMessageId: 143,
             },
           },
