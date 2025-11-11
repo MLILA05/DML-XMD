@@ -46,7 +46,7 @@ zokou({
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363387497418815@newsletter',
+          newsletterJid: '120363403958418756@newsletter',
           newsletterName: "DML-PING",
           serverMessageId: 143,
         },
@@ -87,7 +87,7 @@ zokou({
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363387497418815@newsletter',
+          newsletterJid: '120363403958418756@newsletter',
           newsletterName: config.OWNER_NAME || 'DML-MD',
           serverMessageId: 143,
         },
