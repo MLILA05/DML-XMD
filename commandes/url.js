@@ -85,7 +85,7 @@ zokou(
         .map((url, i) => `📎 *File ${i + 1}:* ${url}`)
         .join("\n\n");
 
-      const responseText = `✅ *Files Uploaded Successfully*\n\n${formattedUrls}\n\n♻ Uploaded by DML`;
+      const responseText = `✅ *Files Uploaded Successfully*\n\n${formattedUrls}\n\n♻ Uploaded by DML-BOTS`;
 
       // Send back result message
       await zk.sendMessage(
@@ -97,8 +97,8 @@ zokou(
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: "120363387497418815@newsletter",
-              newsletterName: config.OWNER_NAME || "DML-MD",
+              newsletterJid: "120363403958418756@newsletter",
+              newsletterName: config.OWNER_NAME || "DML-ZMD",
               serverMessageId: 143,
             },
           },
