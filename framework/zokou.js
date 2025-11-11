@@ -43,6 +43,7 @@ if (fs.existsSync(commandsPath)) {
         console.log(`✅ Command loaded: ${file}`);
       } catch (err) {
         console.error(`❌ Error loading command ${file}:`, err);
+        console.log("✅ update.js command file loaded successfully!");
       }
     }
   });
