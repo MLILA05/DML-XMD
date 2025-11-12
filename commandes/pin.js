@@ -1,25 +1,24 @@
 const { zokou } = require("../framework/zokou");
 
-// Hifadhi pins zote kwa kila group/inbox
+// Temporary pin storage per group/inbox
 const pinsDB = new Map();
 
 zokou({
   nomCom: "pin",
   categorie: "General",
   reaction: "📌",
-  desc: "Pin a message or text in group or inbox"
+  desc: "Pin messages or texts in groups and inbox"
 }, async (dest, zk, commandeOptions) => {
-  const { repondre, arg, ms, auteurMessage, msgRepondu, nomAuteurMessage } = commandeOptions;
+  const { repondre, arg, msgRepondu, nomAuteurMessage } = commandeOptions;
   const chatId = dest;
-  const sender = auteurMessage;
-  const args = arg;
-  
-  // Create entry kama haipo
+  const args = arg || [];
+
+  // Create storage entry if not exists
   if (!pinsDB.has(chatId)) pinsDB.set(chatId, []);
 
   try {
     // ==============================
-    //  List all pins
+    // LIST ALL PINS
     // ==============================
     if (args[0] === "list" || args[0] === "pins") {
       const pins = pinsDB.get(chatId);
@@ -33,13 +32,13 @@ zokou({
     }
 
     // ==============================
-    //  Unpin command
+    // UNPIN
     // ==============================
     if (args[0] === "unpin") {
       const pins = pinsDB.get(chatId);
       if (!pins.length) return repondre("⚠️ Hakuna pins za kuondoa.");
-      
-      // if reply
+
+      // Unpin via reply
       if (msgRepondu) {
         const msgId = msgRepondu.key?.id;
         const index = pins.findIndex(p => p.msgId === msgId);
@@ -47,10 +46,10 @@ zokou({
           pins.splice(index, 1);
           return repondre("🗑️ Pin imeondolewa!");
         }
-        return repondre("⚠️ Pin haijapatikana kwa message hiyo.");
+        return repondre("⚠️ Hakuna pin kwa message hiyo.");
       }
 
-      // if using ID
+      // Unpin via ID
       if (args[1]) {
         const idArg = args[1];
         const index = pins.findIndex(p => p.id === idArg);
@@ -65,27 +64,30 @@ zokou({
     }
 
     // ==============================
-    //  Pin message
+    // PIN BY REPLY (auto-pin)
     // ==============================
     if (msgRepondu) {
-      const msgBody = msgRepondu.message?.conversation ||
-                      msgRepondu.message?.extendedTextMessage?.text ||
-                      msgRepondu.message?.imageMessage?.caption ||
-                      msgRepondu.message?.videoMessage?.caption ||
-                      "[non-text message]";
+      const msgBody =
+        msgRepondu.message?.conversation ||
+        msgRepondu.message?.extendedTextMessage?.text ||
+        msgRepondu.message?.imageMessage?.caption ||
+        msgRepondu.message?.videoMessage?.caption ||
+        "[non-text message]";
+
       const pin = {
         id: Date.now().toString(36).slice(-6),
         by: nomAuteurMessage,
         preview: msgBody.slice(0, 200),
         msgId: msgRepondu.key?.id,
-        time: Date.now()
+        time: Date.now(),
       };
+
       pinsDB.get(chatId).push(pin);
       return repondre(`✅ Message imewekwa pin.\nID: ${pin.id}\nPreview: ${pin.preview}`);
     }
 
     // ==============================
-    //  Pin custom text
+    // PIN TEXT (if not reply)
     // ==============================
     if (args.length > 0) {
       const text = args.join(" ");
@@ -94,21 +96,21 @@ zokou({
         by: nomAuteurMessage,
         preview: text.slice(0, 200),
         msgId: null,
-        time: Date.now()
+        time: Date.now(),
       };
       pinsDB.get(chatId).push(pin);
       return repondre(`✅ Text imewekwa pin.\nID: ${pin.id}`);
     }
 
     // ==============================
-    //  Help message
+    // HELP MESSAGE
     // ==============================
     return repondre(
       `📌 *PIN COMMANDS:*\n\n` +
-      `• *${s.PREFIXE}pin <text>* - pin maandishi\n` +
-      `• *${s.PREFIXE}pin* (reply) - pin message\n` +
-      `• *${s.PREFIXE}unpin* (reply/id) - toa pin\n` +
-      `• *${s.PREFIXE}pin list* - onyesha pins`
+      `• *${s.PREFIXE}pin* (reply) - weka pin kwa message\n` +
+      `• *${s.PREFIXE}pin <text>* - weka pin ya maandishi\n` +
+      `• *${s.PREFIXE}unpin* (reply/id) - ondoa pin\n` +
+      `• *${s.PREFIXE}pin list* - onyesha pins zote`
     );
 
   } catch (err) {
@@ -117,6 +119,6 @@ zokou({
   }
 });
 
-module.exports.pinHandler = async (message, zk) => {
-  // Optional future auto actions if needed (e.g. anti-unpin protection)
+module.exports.pinHandler = async () => {
+  // reserved for future enhancements
 };
