@@ -1,124 +1,80 @@
 const { zokou } = require("../framework/zokou");
 
-// Temporary pin storage per group/inbox
-const pinsDB = new Map();
+// Memory-based storage
+const pinnedMessages = new Map();
 
-zokou({
-  nomCom: "pin",
-  categorie: "General",
-  reaction: "📌",
-  desc: "Pin messages or texts in groups and inbox"
-}, async (dest, zk, commandeOptions) => {
-  const { repondre, arg, msgRepondu, nomAuteurMessage } = commandeOptions;
-  const chatId = dest;
-  const args = arg || [];
+zokou(
+  {
+    nomCom: "pin",
+    categorie: "General",
+    desc: "Pin or show pinned message",
+    reaction: "📌"
+  },
+  async (dest, zk, commandeOptions) => {
+    const { repondre, ms, auteurMessage, arg } = commandeOptions;
+    const chatId = dest;
 
-  // Create storage entry if not exists
-  if (!pinsDB.has(chatId)) pinsDB.set(chatId, []);
+    try {
+      // Kama ana reply message na kuandika pin
+      if (ms.message.extendedTextMessage && !arg[0]) {
+        const replyMsg = ms.message.extendedTextMessage.contextInfo?.quotedMessage;
+        const sender = ms.message.extendedTextMessage.contextInfo?.participant;
 
-  try {
-    // ==============================
-    // LIST ALL PINS
-    // ==============================
-    if (args[0] === "list" || args[0] === "pins") {
-      const pins = pinsDB.get(chatId);
-      if (!pins.length) return repondre("📌 Hakuna pin kwenye chat hii.");
-      
-      let text = "📌 *Pinned Messages:*\n\n";
-      for (const p of pins) {
-        text += `ID: ${p.id}\nBy: ${p.by}\nPreview: ${p.preview}\n\n`;
+        if (!replyMsg) return repondre("⚠️ Reply to a message and type *pin* to pin it.");
+
+        let pinnedText = "";
+        if (replyMsg.conversation) pinnedText = replyMsg.conversation;
+        else if (replyMsg.extendedTextMessage?.text) pinnedText = replyMsg.extendedTextMessage.text;
+        else if (replyMsg.imageMessage) pinnedText = "(📸 Image pinned)";
+        else pinnedText = "(Unsupported message type)";
+
+        pinnedMessages.set(chatId, {
+          text: pinnedText,
+          sender: sender,
+          time: new Date().toLocaleString()
+        });
+
+        await zk.sendMessage(chatId, {
+          text: `📌 *Message Pinned!*\n\n> ${pinnedText}\n\n👤 From: @${sender.split("@")[0]}`,
+          mentions: [sender]
+        });
+        return;
       }
-      return repondre(text);
-    }
 
-    // ==============================
-    // UNPIN
-    // ==============================
-    if (args[0] === "unpin") {
-      const pins = pinsDB.get(chatId);
-      if (!pins.length) return repondre("⚠️ Hakuna pins za kuondoa.");
+      // Kama anaandika tu pin bila reply
+      if (!arg[0] && !ms.message.extendedTextMessage) {
+        const pinned = pinnedMessages.get(chatId);
+        if (!pinned)
+          return repondre("📭 Hakuna message yoyote iliyopinwa kwenye chat hii.");
 
-      // Unpin via reply
-      if (msgRepondu) {
-        const msgId = msgRepondu.key?.id;
-        const index = pins.findIndex(p => p.msgId === msgId);
-        if (index !== -1) {
-          pins.splice(index, 1);
-          return repondre("🗑️ Pin imeondolewa!");
+        await zk.sendMessage(chatId, {
+          text: `📍 *Pinned Message:*\n\n${pinned.text}\n\n👤 From: @${pinned.sender.split("@")[0]}\n🕒 ${pinned.time}`,
+          mentions: [pinned.sender]
+        });
+        return;
+      }
+
+      // Kama anaandika "pin unpin"
+      if (arg[0] && arg[0].toLowerCase() === "unpin") {
+        if (pinnedMessages.has(chatId)) {
+          pinnedMessages.delete(chatId);
+          return repondre("❌ *Pinned message removed successfully!*");
+        } else {
+          return repondre("⚠️ Hakuna pinned message ya kufuta hapa.");
         }
-        return repondre("⚠️ Hakuna pin kwa message hiyo.");
       }
 
-      // Unpin via ID
-      if (args[1]) {
-        const idArg = args[1];
-        const index = pins.findIndex(p => p.id === idArg);
-        if (index !== -1) {
-          pins.splice(index, 1);
-          return repondre(`🗑️ Pin ${idArg} imeondolewa!`);
-        }
-        return repondre("⚠️ Pin ID haipo.");
-      }
+      // Help text
+      return repondre(
+        `📌 *Pin Commands:*\n` +
+        `• Reply message and type *pin* - to pin it\n` +
+        `• *!pin* - to view pinned message\n` +
+        `• *!pin unpin* - to remove pinned message`
+      );
 
-      return repondre("🧭 Tumia `!pin list` kuona IDs au reply message kisha andika `!unpin`.");
+    } catch (error) {
+      console.error("Pin Command Error:", error);
+      repondre("❌ An error occurred while processing the pin command.");
     }
-
-    // ==============================
-    // PIN BY REPLY (auto-pin)
-    // ==============================
-    if (msgRepondu) {
-      const msgBody =
-        msgRepondu.message?.conversation ||
-        msgRepondu.message?.extendedTextMessage?.text ||
-        msgRepondu.message?.imageMessage?.caption ||
-        msgRepondu.message?.videoMessage?.caption ||
-        "[non-text message]";
-
-      const pin = {
-        id: Date.now().toString(36).slice(-6),
-        by: nomAuteurMessage,
-        preview: msgBody.slice(0, 200),
-        msgId: msgRepondu.key?.id,
-        time: Date.now(),
-      };
-
-      pinsDB.get(chatId).push(pin);
-      return repondre(`✅ Message imewekwa pin.\nID: ${pin.id}\nPreview: ${pin.preview}`);
-    }
-
-    // ==============================
-    // PIN TEXT (if not reply)
-    // ==============================
-    if (args.length > 0) {
-      const text = args.join(" ");
-      const pin = {
-        id: Date.now().toString(36).slice(-6),
-        by: nomAuteurMessage,
-        preview: text.slice(0, 200),
-        msgId: null,
-        time: Date.now(),
-      };
-      pinsDB.get(chatId).push(pin);
-      return repondre(`✅ Text imewekwa pin.\nID: ${pin.id}`);
-    }
-
-    // ==============================
-    // HELP MESSAGE
-    // ==============================
-    return repondre(
-      `📌 *PIN COMMANDS:*\n\n` +
-      `• *${s.PREFIXE}pin* (reply) - weka pin kwa message\n` +
-      `• *${s.PREFIXE}pin <text>* - weka pin ya maandishi\n` +
-      `• *${s.PREFIXE}unpin* (reply/id) - ondoa pin\n` +
-      `• *${s.PREFIXE}pin list* - onyesha pins zote`
-    );
-
-  } catch (err) {
-    console.error("Pin Command Error:", err);
-    repondre("❌ Hitilafu imetokea wakati wa ku-pin.");
   }
-});
-
-module.exports.pinHandler = async () => {
-  // reserved for future enhancements
-};
+);
