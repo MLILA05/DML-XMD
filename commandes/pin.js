@@ -23,43 +23,26 @@ zokou({
       }
     }
 
-    if (quoted) {
-      // Check if user is replying to the current pinned message
+    if (quoted && quotedMsgId) {
+      // User is quoting a message - check if it's the pinned message
       const pinned = pinnedMemory.get(dest);
+      
       if (pinned && quotedMsgId === pinned.id) {
-        // User is replying to the pinned message - repost it at the top
-        await zk.sendMessage(dest, {
-          text: `📍 *Pinned Message* 📍\n👤 From: @${pinned.sender.split("@")[0]}\n🕒 ${pinned.time}\n\n📌 *Reposted by request*`,
-          mentions: [pinned.sender]
-        });
-        
-        // Also send the original quoted message as a fresh message
-        await zk.sendMessage(dest, {
-          forward: {
-            key: {
-              remoteJid: dest,
-              id: pinned.id
-            },
-            message: quoted
-          }
-        });
-        
+        // User is replying to the pinned message - repost it
+        await repondre(`📍 *Pinned Message Reposted* 📍\n👤 From: @${pinned.sender.split("@")[0]}\n🕒 ${pinned.time}\n\n📌 *Brought to top by request*`);
         return;
       }
 
       // Save new pinned message
       pinnedMemory.set(dest, {
         id: quotedMsgId,
-        sender,
+        sender: sender || ms.key.participant || ms.key.remoteJid,
         time: new Date().toLocaleString(),
-        timestamp: Date.now(),
-        message: quoted // Store the actual message content
+        timestamp: Date.now()
       });
 
-      await zk.sendMessage(dest, {
-        text: `📌 *Message Pinned!*\n👤 From: @${sender.split("@")[0]}\n🕒 ${new Date().toLocaleString()}\n\nReply to this message with *pin* to bring it to the top again.`,
-        mentions: [sender]
-      });
+      const actualSender = sender || ms.key.participant || ms.key.remoteJid;
+      await repondre(`📌 *Message Pinned!*\n👤 From: @${actualSender.split("@")[0]}\n🕒 ${new Date().toLocaleString()}\n\nUse *pin* alone to bring this message to the top.`);
 
     } else {
       // No quoted message - show the pinned message
@@ -75,75 +58,24 @@ zokou({
         return repondre("⏰ The pinned message has expired (24 hours). Please pin a new message.");
       }
 
-      // Repost the pinned message at the top
+      // Repost the pinned message by quoting it
       await zk.sendMessage(dest, {
         text: `📍 *Pinned Message* 📍\n👤 From: @${pinned.sender.split("@")[0]}\n🕒 ${pinned.time}\n\n📌 *Brought to top by request*`,
-        mentions: [pinned.sender]
-      });
-
-      // Forward the original pinned message as a fresh message
-      try {
-        await zk.sendMessage(dest, {
-          forward: {
-            key: {
-              remoteJid: dest,
-              id: pinned.id
-            },
-            message: pinned.message
-          }
-        });
-      } catch (forwardError) {
-        // If forwarding fails, send a text reference
-        await zk.sendMessage(dest, {
-          text: "📎 *Original pinned message reference* (message might be deleted or expired)"
-        });
-      }
-    }
-  } catch (err) {
-    console.error("Pin Error:", err);
-    repondre("❌ Error while processing pin command.");
-  }
-});
-
-// Alternative simpler version that always reposts when command is used
-zokou({
-  nomCom: "pintop",
-  categorie: "General", 
-  reaction: "📌",
-  desc: "Bring pinned message to the top"
-}, async (dest, zk, { repondre }) => {
-  try {
-    const pinned = pinnedMemory.get(dest);
-    if (!pinned) {
-      return repondre("📭 No pinned message found. Use *pin* while quoting a message to pin it first.");
-    }
-
-    // Always repost the pinned message at the top
-    await zk.sendMessage(dest, {
-      text: `📍 *Pinned Message - Brought to Top* 📍\n👤 From: @${pinned.sender.split("@")[0]}\n🕒 ${pinned.time}`,
-      mentions: [pinned.sender]
-    });
-
-    // Try to forward the original message
-    try {
-      await zk.sendMessage(dest, {
-        forward: {
+        mentions: [pinned.sender],
+        quoted: {
           key: {
             remoteJid: dest,
             id: pinned.id
           },
-          message: pinned.message
+          message: {
+            conversation: "📍 Pinned Message Reference"
+          }
         }
       });
-    } catch (error) {
-      await zk.sendMessage(dest, {
-        text: "📎 [Original pinned message - content unavailable]"
-      });
     }
-
   } catch (err) {
-    console.error("PinTop Error:", err);
-    repondre("❌ Error while bringing pinned message to top.");
+    console.error("Pin Error:", err);
+    repondre("❌ Error while processing pin command. Please try again.");
   }
 });
 
