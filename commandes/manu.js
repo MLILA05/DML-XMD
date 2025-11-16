@@ -1,71 +1,88 @@
 const util = require('util');
 const fs = require('fs-extra');
+const path = require('path');
 const { zokou } = require(__dirname + "/../framework/zokou");
 const { format } = require(__dirname + "/../framework/mesfonctions");
 const os = require("os");
 const moment = require("moment-timezone");
 const s = require(__dirname + "/../set");
 
-const more = String.fromCharCode(8206);
-const readMore = more.repeat(4001);
-
-zokou({ nomCom: "menu2", categorie: "General" }, async (dest, zk, commandeOptions) => {
+zokou({ nomCom: "menu", categorie: "General" }, async (dest, zk, commandeOptions) => {
     let { ms, repondre, prefixe, nomAuteurMessage } = commandeOptions;
     let { cm } = require(__dirname + "/../framework/zokou");
+
     var coms = {};
     var mode = (s.MODE.toLowerCase() === "yes") ? "public" : "private";
 
+    // Read images randomly
+    const scsFolder = path.join(__dirname, "../Dml");
+    const images = fs.readdirSync(scsFolder).filter(f => /^menu\d+\.jpg$/i.test(f));
+    const randomImage = images[Math.floor(Math.random() * images.length)];
+    const imagePath = path.join(scsFolder, randomImage);
+
+    // Read more
+    const more = String.fromCharCode(8206);
+    const readMore = more.repeat(4001);
+
+    // Group commands by category
     cm.map((com) => {
         if (!coms[com.categorie]) coms[com.categorie] = [];
         coms[com.categorie].push(com.nomCom);
     });
 
+    // Time formatting
     moment.tz.setDefault("Africa/Nairobi");
     const temps = moment().format('HH:mm:ss');
     const date = moment().format('DD/MM/YYYY');
 
-    let infoMsg = `🖐🏻 *Hello ${nomAuteurMessage}!* 🖐🏻
-━━━━━━━━━━━━━━━━━━━━
-🚀 *BOT NAME:* 𝗗𝗠𝗟-𝗠𝗗  
-━━━━━━━━━━━━━━━━━━━━
-🌍 *SYSTEM INFO:*
-💻 ᴘʟᴀᴛғᴏʀᴍ: *${os.platform()}*
-━━━━━━━━━━━━━━━━━━━━
-⚙️ *BOT STATUS:*
-🔴 ᴍᴏᴅᴇ: *${mode}*
-💫 ᴘʀᴇғɪx: *[ ${prefixe} ]*
-⏳ ᴛɪᴍᴇ: ${temps}
-📆 ᴅᴀᴛᴇ: ${date}
-━━━━━━━━━━━━━━━━━━━━
-🔰 *𝐂𝐇𝐀𝐍𝐍𝐄𝐋𝐒 & 𝐂𝐎𝐍𝐍𝐄𝐂𝐓𝐈𝐎𝐍𝐒:*  
-  
-🔰 𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏 𝐂𝐇𝐀𝐍𝐍𝐄𝐋:  
-🔗 https://whatsapp.com/channel/0029Vb2hoPpDZ4Lb3mSkVI3C    
-━━━━━━━━━━━━━━━━━━━━
-${readMore}
-📜 *COMMANDS MENU* 📜
-━━━━━━━━━━━━━━━━━━━━\n`;
+    // PROFESSIONAL MENU HEADER
+    let infoMsg = `
+╭━━━〔 *DML-XMD SYSTEM PANEL* 〕━━━╮
+│ 👋 Hello *${nomAuteurMessage}*!
+│──────────────────────────
+│ 🚀 *BOT NAME:* DML-XMD
+│ 💻 *Platform:* ${os.platform()}
+│ 🔧 *Mode:* ${mode}
+│ 🔣 *Prefix:* ${prefixe}
+│ 🕒 *Time:* ${temps}
+│ 📅 *Date:* ${date}
+│──────────────────────────
+│ 🔗 *Official WhatsApp Channel*
+│ https://whatsapp.com/channel/0029VbBf4Y52kNFkFCx2pF1H
+╰━━━━━━━━━━━━━━━━━━━━━━╯
 
-    let menuMsg = ``;
+${readMore}
+📁 *AVAILABLE COMMAND CATEGORIES*
+━━━━━━━━━━━━━━━━━━━━
+`;
+
+    // PROFESSIONAL CATEGORY MENU
+    let menuMsg = "";
 
     for (const cat in coms) {
-        menuMsg += `🔰 *${cat.toUpperCase()}* 🔰\n`;
+        menuMsg += `
+╭──〔 *${cat.toUpperCase()} COMMANDS* 〕──╮\n`;
+
         for (const cmd of coms[cat]) {
-            menuMsg += `   🔴 ${cmd}\n`;
+            menuMsg += `│ 🔹 ${cmd}\n`;
         }
-        menuMsg += `━━━━━━━━━━━━━━━━━━━━\n`;
+
+        menuMsg += `╰─────────────────────╯\n`;
     }
 
-    menuMsg += `🛡 *DML-MD BOT - DEVELOPED BY DAUDY* 🛡`;
-
-    let imageUrl = "https://files.catbox.moe/vcdwmp.jpg";
+    menuMsg += `
+━━━━━━━━━━━━━━━━━━━━
+🛡 *DML-XMD — Developed by Daudy*
+━━━━━━━━━━━━━━━━━━━━
+`;
 
     try {
-        zk.sendMessage(dest, { 
-            image: { url: imageUrl }, 
-            caption: infoMsg + menuMsg, 
-            footer: "© DML-MD" 
+        await zk.sendMessage(dest, {
+            image: { url: imagePath },
+            caption: infoMsg + menuMsg,
+            footer: "© DML-XMD"
         }, { quoted: ms });
+
     } catch (e) {
         console.log("🥵 Menu error: " + e);
         repondre("🥵 Menu error: " + e);
