@@ -84,7 +84,7 @@
 
 ### 2️⃣ Generate Session
 
-[![Pair Code](https://img.shields.io/badge/GET_PAIR_CODE-1BAFBA?style=for-the-badge&logo=connectdevelop&logoColor=white)](https://dml-xmd-session1.onrender.com)
+[![Pair Code](https://img.shields.io/badge/GET_PAIR_CODE-1BAFBA?style=for-the-badge&logo=connectdevelop&logoColor=white)](https://dml-new-session-efk0.onrender.com)
 
 ---
 
