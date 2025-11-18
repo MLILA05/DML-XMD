@@ -1,7 +1,7 @@
 const { zokou } = require("../framework/zokou");
 const axios = require("axios");
 
-// Temporary store for generated codes
+// Store generated codes per chat
 const generatedCodes = new Map();
 
 zokou(
@@ -35,7 +35,7 @@ zokou(
 
       const pairCode = data.code;
 
-      // Save this code temporarily for button action
+      // Store the code for this chat
       generatedCodes.set(dest, pairCode);
 
       const messageText = `
@@ -50,20 +50,17 @@ zokou(
 
       const buttons = [
         {
-          buttonId: `copy_code`,
+          buttonId: `copy_code_${dest}`, // button tied to this chat
           buttonText: { displayText: "📋 COPY CODE" },
           type: 1,
         },
       ];
 
-      await zk.sendMessage(
-        dest,
-        {
-          text: messageText,
-          buttons,
-          headerType: 1,
-        }
-      );
+      await zk.sendMessage(dest, {
+        text: messageText,
+        buttons,
+        headerType: 1,
+      });
 
     } catch (e) {
       console.error(e);
@@ -82,12 +79,14 @@ zokou.buttonHandler = async (zk, m) => {
   const from = m.key.remoteJid;
   const buttonId = btn.selectedButtonId;
 
-  // Handle "COPY CODE"
-  if (buttonId === "copy_code") {
+  // Only handle buttons for this chat
+  if (buttonId === `copy_code_${from}`) {
     const code = generatedCodes.get(from);
 
     if (!code) {
-      return zk.sendMessage(from, { text: "❌ No code stored. Generate a new one using *pair1*." });
+      return zk.sendMessage(from, {
+        text: "❌ No code stored. Generate a new one using *pair1* command."
+      });
     }
 
     await zk.sendMessage(from, {
@@ -96,7 +95,7 @@ zokou.buttonHandler = async (zk, m) => {
   }
 };
 
-// Register message listener
+// Register button listener
 zokou.onMessage(async (zk, msg) => {
   await zokou.buttonHandler(zk, msg);
 });
