@@ -1,6 +1,26 @@
 const { zokou } = require("../framework/zokou");
 const axios = require("axios");
 
+// Add input validation
+function validatePhoneNumber(number) {
+  const phoneRegex = /^\d{10,15}$/;
+  return phoneRegex.test(number.replace(/\s+/g, ''));
+}
+
+// Add rate limiting
+const userRequests = new Map();
+const RATE_LIMIT_TIME = 30000; // 30 seconds
+
+function isRateLimited(userId) {
+  const now = Date.now();
+  const lastRequest = userRequests.get(userId);
+  if (lastRequest && (now - lastRequest) < RATE_LIMIT_TIME) {
+    return true;
+  }
+  userRequests.set(userId, now);
+  return false;
+}
+
 zokou(
   {
     nomCom: "pair1",
@@ -9,43 +29,59 @@ zokou(
     categorie: "General",
   },
   async (dest, zk, msg) => {
-    const { repondre, arg } = msg;
+    const { repondre, arg, auteur } = msg;
+    const userId = auteur || dest;
 
     try {
+      // Rate limiting check
+      if (isRateLimited(userId)) {
+        return repondre("⏳ Please wait 30 seconds before making another request.");
+      }
+
       if (!arg || arg.length === 0) {
         return repondre("⚠️ *Please provide a number in the format:* `25578xxxxxxx`");
       }
 
+      const number = arg.join(" ").replace(/\s+/g, '');
+      
+      // Validate phone number format
+      if (!validatePhoneNumber(number)) {
+        return repondre("❌ *Invalid number format.* Please use: `25578xxxxxxx` (10-15 digits)");
+      }
+
       await repondre("🕓 *Please wait... Generating your Pair Code...*");
 
-      const number = arg.join(" ");
       const encodedNumber = encodeURIComponent(number);
-
       const apiUrl = `https://dml-new-session-efk0.onrender.com/code?number=${encodedNumber}`;
-      const response = await axios.get(apiUrl);
+      
+      // Add timeout to axios request
+      const response = await axios.get(apiUrl, { timeout: 30000 });
       const data = response.data;
 
       if (!data?.code) {
-        return repondre("❌ *Error:* No code received from API.");
+        return repondre("❌ *Error:* No code received from API. Please try again later.");
       }
 
       const pairCode = data.code;
 
+      // Enhanced message formatting with exact code displayed
       const messageText = `
 ╔═══════════════════╗
 🎯 *PAIR CODE READY!* 🎯
 ╚═══════════════════╝
 
-🔗 \`\`\`${pairCode}\`\`\`
+📱 *Number:* ${number}
+🔗 *Pair Code:* 
+${pairCode}
 
-📲 Click the button below to copy your code.
+📲 *Click the button below to get your code in a clean format for easy copying.*
+⏰ *Code expires in 20 seconds*
 `;
 
-      // Button now carries the actual code in its ID
       const buttons = [
         {
           buttonId: `copy_code_${pairCode}`,
-          buttonText: { displayText: "📋 COPY CODE" },
+          buttonText: { displayText: "📋 GET CODE" },
           type: 1,
         },
       ];
@@ -56,9 +92,16 @@ zokou(
         headerType: 1,
       });
 
-    } catch (e) {
-      console.error(e);
-      repondre("❌ Failed to generate Pair Code. Try again later.");
+    } catch (error) {
+      console.error("Pair code error:", error);
+      
+      if (error.code === 'ECONNABORTED') {
+        return repondre("❌ Request timeout. Please try again later.");
+      } else if (error.response?.status === 429) {
+        return repondre("❌ Too many requests. Please wait a moment.");
+      } else {
+        repondre("❌ Failed to generate Pair Code. The service might be temporarily unavailable.");
+      }
     }
   }
 );
@@ -73,9 +116,14 @@ zokou.buttonHandler = async (zk, m) => {
   const buttonId = btn.selectedButtonId;
 
   if (buttonId.startsWith("copy_code_")) {
-    const code = buttonId.replace("copy_code_", ""); // get the exact code from the button
+    const code = buttonId.replace("copy_code_", "");
+    
+    // Send the code in a clean, easy-to-copy format
     await zk.sendMessage(m.key.remoteJid, {
-      text: `📋 *Your Pair Code:*\n\`\`\`${code}\`\`\`\n\nCopied successfully!`
+      text: `📋 *COPY THIS EXACT CODE:*\n\n` +
+            `\`\`\`\n${code}\n\`\`\`\n\n` +
+            `💡 *Tip:* Long press the code above to select and copy it easily.\n` +
+            `⏰ *Remember:* This code expires in 20 seconds!`
     });
   }
 };
