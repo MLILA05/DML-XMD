@@ -1,9 +1,6 @@
 const { zokou } = require("../framework/zokou");
 const axios = require("axios");
 
-// Store generated codes per chat
-const generatedCodes = new Map();
-
 zokou(
   {
     nomCom: "pair1",
@@ -25,7 +22,6 @@ zokou(
       const encodedNumber = encodeURIComponent(number);
 
       const apiUrl = `https://dml-new-session-efk0.onrender.com/code?number=${encodedNumber}`;
-
       const response = await axios.get(apiUrl);
       const data = response.data;
 
@@ -35,9 +31,6 @@ zokou(
 
       const pairCode = data.code;
 
-      // Store the code for this chat
-      generatedCodes.set(dest, pairCode);
-
       const messageText = `
 ╔═══════════════════╗
 🎯 *PAIR CODE READY!* 🎯
@@ -45,12 +38,13 @@ zokou(
 
 🔗 \`\`\`${pairCode}\`\`\`
 
-📲 *Click the button below to copy your code.*
+📲 Click the button below to copy your code.
 `;
 
+      // Button now carries the actual code in its ID
       const buttons = [
         {
-          buttonId: `copy_code_${dest}`, // button tied to this chat
+          buttonId: `copy_code_${pairCode}`,
           buttonText: { displayText: "📋 COPY CODE" },
           type: 1,
         },
@@ -76,20 +70,11 @@ zokou.buttonHandler = async (zk, m) => {
   const btn = m?.message?.buttonsResponseMessage;
   if (!btn) return;
 
-  const from = m.key.remoteJid;
   const buttonId = btn.selectedButtonId;
 
-  // Only handle buttons for this chat
-  if (buttonId === `copy_code_${from}`) {
-    const code = generatedCodes.get(from);
-
-    if (!code) {
-      return zk.sendMessage(from, {
-        text: "❌ No code stored. Generate a new one using *pair1* command."
-      });
-    }
-
-    await zk.sendMessage(from, {
+  if (buttonId.startsWith("copy_code_")) {
+    const code = buttonId.replace("copy_code_", ""); // get the exact code from the button
+    await zk.sendMessage(m.key.remoteJid, {
       text: `📋 *Your Pair Code:*\n\`\`\`${code}\`\`\`\n\nCopied successfully!`
     });
   }
