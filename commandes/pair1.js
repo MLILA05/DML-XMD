@@ -64,7 +64,6 @@ zokou(
 
       const pairCode = data.code;
 
-      // Enhanced message formatting with exact code displayed
       const messageText = `
 ╔═══════════════════╗
 🎯 *PAIR CODE READY!* 🎯
@@ -74,14 +73,15 @@ zokou(
 🔗 *Pair Code:* 
 ${pairCode}
 
-📲 *Click the button below to get your code in a clean format for easy copying.*
 ⏰ *Code expires in 20 seconds*
+
+📲 Click the button below to copy your code.
 `;
 
       const buttons = [
         {
           buttonId: `copy_code_${pairCode}`,
-          buttonText: { displayText: "📋 GET CODE" },
+          buttonText: { displayText: "📋 COPY CODE" },
           type: 1,
         },
       ];
@@ -107,7 +107,7 @@ ${pairCode}
 );
 
 // ===========================
-// BUTTON HANDLER
+// BUTTON HANDLER - FIXED
 // ===========================
 zokou.buttonHandler = async (zk, m) => {
   const btn = m?.message?.buttonsResponseMessage;
@@ -118,12 +118,9 @@ zokou.buttonHandler = async (zk, m) => {
   if (buttonId.startsWith("copy_code_")) {
     const code = buttonId.replace("copy_code_", "");
     
-    // Send the code in a clean, easy-to-copy format
+    // Send the exact same code that was shown originally
     await zk.sendMessage(m.key.remoteJid, {
-      text: `📋 *COPY THIS EXACT CODE:*\n\n` +
-            `\`\`\`\n${code}\n\`\`\`\n\n` +
-            `💡 *Tip:* Long press the code above to select and copy it easily.\n` +
-            `⏰ *Remember:* This code expires in 20 seconds!`
+      text: `📋 *Your Pair Code:*\n\n${code}\n\n*Long press the code above to copy it*`
     });
   }
 };
