@@ -25,7 +25,7 @@ zokou(
       );
 
       const encodedNumber = encodeURIComponent(arg.join(" "));
-      const apiUrl = `https://dml-new-session-efk0.onrender.com/code?number=${encodedNumber}`;
+      const apiUrl = `https://dml-md-session-urtj.onrender.com/code?number=${encodedNumber}`;
       const response = await axios.get(apiUrl);
       const data = response.data;
 
