@@ -95,20 +95,22 @@ Click below to copy.
 );
 
 // ===========================
-// BUTTON HANDLER (FULL FIX)
+// BUTTON HANDLER (FIXED)
 // ===========================
-zokou.onMessage(async (zk, msg) => {
-  const btn = msg?.message?.buttonsResponseMessage;
-  if (!btn) return;
+zokou(
+  { on: "message" },
+  async (dest, zk, msg) => {
+    const btn = msg?.message?.buttonsResponseMessage;
+    if (!btn) return;
 
-  const buttonId = btn.selectedButtonId;
+    const buttonId = btn.selectedButtonId;
 
-  // Handler now matches your button
-  if (buttonId.startsWith("pairCode_")) {
-    const code = buttonId.replace("pairCode_", "");
+    if (buttonId.startsWith("pairCode_")) {
+      const code = buttonId.replace("pairCode_", "");
 
-    await zk.sendMessage(msg.key.remoteJid, {
-      text: `📋 *Your Pair Code:*\n\n${code}\n\nLong-press to copy.`,
-    });
+      await zk.sendMessage(msg.key.remoteJid, {
+        text: `📋 *Your Pair Code:*\n\n${code}\n\nLong-press to copy.`,
+      });
+    }
   }
-});
+);
