@@ -19,8 +19,8 @@ function isRateLimited(userId) {
   return false;
 }
 
-// Store exact code per user for correct copying
-const savedCodes = new Map();
+// Map buttonId -> exact pair code
+const buttonCodeMap = new Map();
 
 zokou(
   {
@@ -61,29 +61,34 @@ zokou(
 
       const pairCode = data.code;
 
-      // SAVE CODE EXACTLY
-      savedCodes.set(userId, pairCode);
+      // create a unique button id per request and store exact code
+      const uniqueButtonId = `pairCode_${userId}_${Date.now()}`;
+      buttonCodeMap.set(uniqueButtonId, pairCode);
 
+      // Send message WITHOUT showing the code — only the button
       const messageText = `
 🎯 *PAIR CODE READY!*
 
 📱 Number: ${number}
 
-Click the button below to copy your Pair Code.
-(⚠️ Code is hidden for security)
+Click the button below to receive the Pair Code (code is hidden for security).
 `;
-
       await zk.sendMessage(dest, {
         text: messageText,
         buttons: [
           {
-            buttonId: `copyCode`,
+            buttonId: uniqueButtonId,
             buttonText: { displayText: "📋 COPY CODE" },
             type: 1,
           },
         ],
         headerType: 1,
       });
+
+      // Optional: expire mapping after 25 seconds to avoid stale codes
+      setTimeout(() => {
+        buttonCodeMap.delete(uniqueButtonId);
+      }, 25000);
 
     } catch (error) {
       console.log("Pair code error:", error);
@@ -99,30 +104,36 @@ Click the button below to copy your Pair Code.
   }
 );
 
-// ===========================
-// BUTTON HANDLER (PERFECT FIX)
-// ===========================
+// BUTTON HANDLER: when user clicks button, send EXACT code as plain text
 zokou(
   { on: "message" },
   async (dest, zk, msg) => {
-    const btn = msg?.message?.buttonsResponseMessage;
-    if (!btn) return;
+    try {
+      const btn = msg?.message?.buttonsResponseMessage;
+      if (!btn) return;
 
-    const buttonId = btn.selectedButtonId;
-    const userId = msg.key.participant || msg.key.remoteJid;
+      const buttonId = btn.selectedButtonId;
+      if (!buttonId || !buttonId.startsWith("pairCode_")) return;
 
-    if (buttonId === "copyCode") {
-      const code = savedCodes.get(userId);
+      // get the stored exact code
+      const code = buttonCodeMap.get(buttonId);
+
+      // delete mapping immediately after use to avoid reuse
+      buttonCodeMap.delete(buttonId);
 
       if (!code) {
+        // send clear failure text (no extra decoration)
         return zk.sendMessage(msg.key.remoteJid, {
-          text: "❌ No code stored. Generate again.",
+          text: "❌ Pair code expired or not found. Please generate again.",
         });
       }
 
+      // Send EXACT code ONLY (so user can copy it)
       await zk.sendMessage(msg.key.remoteJid, {
-        text: `📋 *Your Pair Code:*\n\n${code}\n\nTap to copy.`,
+        text: `${code}`,
       });
+    } catch (err) {
+      console.error("Button handler error:", err);
     }
   }
 );
