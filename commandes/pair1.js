@@ -1,33 +1,47 @@
 const { zokou } = require("../framework/zokou");
 const axios = require("axios");
 
-// 1. Validation Function
+// Enhanced phone number validation
 function validatePhoneNumber(number) {
-  // Regex: starts and ends with a digit, 10 to 15 digits long
-  const phoneRegex = /^\d{10,15}$/;
+  const phoneRegex = /^(?:\+?255|0)?\d{9}$/; // Better Tanzanian number support
   return phoneRegex.test(number.replace(/\s+/g, ""));
 }
 
-// 2. Rate Limit Setup
+// Enhanced rate limiting with request counting
 const userRequests = new Map();
-const RATE_LIMIT_TIME = 45000; // Increased to 45 seconds to match code expiration
+const RATE_LIMIT_TIME = 30000; // 30 seconds
+const MAX_REQUESTS_PER_WINDOW = 3;
 
 function isRateLimited(userId) {
   const now = Date.now();
-  const lastRequest = userRequests.get(userId);
-  // Check if a request was made within the RATE_LIMIT_TIME
-  if (lastRequest && now - lastRequest < RATE_LIMIT_TIME) return true;
-  userRequests.set(userId, now);
-  return false;
+  const userData = userRequests.get(userId) || { count: 0, firstRequest: now };
+  
+  // Reset counter if window expired
+  if (now - userData.firstRequest > RATE_LIMIT_TIME) {
+    userData.count = 0;
+    userData.firstRequest = now;
+  }
+  
+  userData.count++;
+  userRequests.set(userId, userData);
+  
+  return userData.count > MAX_REQUESTS_PER_WINDOW;
 }
 
-// 3. Mapping for ButtonId -> Exact Pair Code
-// This is crucial for securely hiding the code until the button is clicked.
+// Store button data with expiration
 const buttonCodeMap = new Map();
+const BUTTON_EXPIRY = 25000; // 25 seconds
 
-// =========================================================
-// COMMAND HANDLER: pair1
-// =========================================================
+// Cleanup expired entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of buttonCodeMap.entries()) {
+    if (now - value.timestamp > BUTTON_EXPIRY) {
+      buttonCodeMap.delete(key);
+    }
+  }
+}, 60000); // Clean every minute
+
 zokou(
   {
     nomCom: "pair1",
@@ -40,86 +54,96 @@ zokou(
     const userId = auteur || dest;
 
     try {
-      // 1. Apply Rate Limit
       if (isRateLimited(userId)) {
-        return repondre("⏳ Please wait 45 seconds before making another request.");
+        return repondre("⏳ Please wait 30 seconds before making another request. (Max 3 requests per 30 seconds)");
       }
 
-      // 2. Check for Arguments
       if (!arg || arg.length === 0) {
-        return repondre("⚠️ Please provide number: `25578xxxxxxx`");
+        const usage = `
+📋 *USAGE GUIDE*
+• *Command:* .pair [number]
+• *Example:* .pair 255787654321
+• *Format:* Tanzanian numbers (255XXXXXXXXX)
+        `;
+        return repondre(usage);
       }
 
       const number = arg.join(" ").replace(/\s+/g, "");
 
-      // 3. Validate Phone Number
       if (!validatePhoneNumber(number)) {
-        return repondre("❌ Invalid number. Use: `25578xxxxxxx` (10–15 digits)");
+        const example = `
+❌ *INVALID NUMBER*
+• Use Tanzanian format: 255787654321
+• 9 digits after country code
+• Example: 255712345678
+        `;
+        return repondre(example);
       }
 
       await repondre("🕓 Please wait... generating Pair Code...");
 
-      // 4. API Call
       const apiUrl = `https://dml-new-session-efk0.onrender.com/code?number=${encodeURIComponent(number)}`;
-      const response = await axios.get(apiUrl, { timeout: 35000 }); // Increased API timeout
+
+      const response = await axios.get(apiUrl, { 
+        timeout: 30000,
+        validateStatus: (status) => status < 500 
+      });
+      
       const data = response.data;
 
       if (!data?.code) {
-        return repondre("❌ No code received from API. Try again later.");
+        console.error('API response:', data);
+        return repondre("❌ No code received from API. The service might be temporarily unavailable.");
       }
 
-      const pairCode = data.code;
+      const pairCode = data.code.trim();
 
-      // 5. Securely Store Code and Send Button
+      // Create unique button ID and store with timestamp
       const uniqueButtonId = `pairCode_${userId}_${Date.now()}`;
-      buttonCodeMap.set(uniqueButtonId, pairCode);
+      buttonCodeMap.set(uniqueButtonId, {
+        code: pairCode,
+        timestamp: Date.now(),
+        number: number // Store for debugging
+      });
 
-      // Send message WITHOUT showing the code — only the button
       const messageText = `
 🎯 *PAIR CODE READY!*
 
 📱 Number: ${number}
+⏰ Code expires in 25 seconds
 
-Click the button below to receive the Pair Code (code is hidden for security).
-*✅ IMPORTANT: After clicking, the code will be sent to you as plain text. Long-press that message to copy it.*
-`;
+Click the button below to receive the Pair Code.
+      `;
+
       await zk.sendMessage(dest, {
         text: messageText,
         buttons: [
           {
             buttonId: uniqueButtonId,
-            buttonText: { displayText: "📋 COPY CODE" },
+            buttonText: { displayText: "📋 REVEAL CODE" },
             type: 1,
           },
         ],
         headerType: 1,
       });
 
-      // 6. Set Code Expiration
-      // Code expires after 45 seconds to prevent stale session codes.
-      setTimeout(() => {
-        buttonCodeMap.delete(uniqueButtonId);
-        console.log(`Pair code ${uniqueButtonId} expired and deleted.`);
-      }, 45000); 
-
     } catch (error) {
-      console.log("Pair code error:", error);
+      console.error("Pair code error:", error);
 
       if (error.code === "ECONNABORTED") {
-        return repondre("❌ Request timed out. Try again.");
+        return repondre("❌ Request timed out. Please try again.");
       } else if (error.response?.status === 429) {
-        return repondre("❌ Too many requests. Wait a minute.");
+        return repondre("❌ Too many requests to the service. Please wait a few minutes.");
+      } else if (error.response?.status >= 500) {
+        return repondre("❌ Service temporarily unavailable. Please try again later.");
       }
 
-      return repondre("❌ Failed to generate Pair Code.");
+      return repondre("❌ Failed to generate Pair Code. Please try again.");
     }
   }
 );
 
-// =========================================================
-// BUTTON HANDLER: Send Raw Code
-// (This is what ensures the user gets the exact, copyable code)
-// =========================================================
+// Enhanced button handler
 zokou(
   { on: "message" },
   async (dest, zk, msg) => {
@@ -128,28 +152,36 @@ zokou(
       if (!btn) return;
 
       const buttonId = btn.selectedButtonId;
-      // Ensure the button ID is one we generated
-      if (!buttonId || !buttonId.startsWith("pairCode_")) return;
+      if (!buttonId?.startsWith("pairCode_")) return;
 
-      // 1. Retrieve the stored exact code
-      const code = buttonCodeMap.get(buttonId);
-
-      // 2. Delete mapping immediately after use to avoid reuse
-      buttonCodeMap.delete(buttonId);
-
-      if (!code) {
-        // Code has expired or was already used
-        return zk.sendMessage(msg.key.remoteJid, {
-          text: "❌ Pair code expired or not found. Please generate again.",
+      const buttonData = buttonCodeMap.get(buttonId);
+      
+      // Check if code exists and isn't expired
+      if (!buttonData) {
+        return zk.sendMessage(dest, {
+          text: "❌ Code expired. Please generate a new one using .pair [number]",
         });
       }
 
-      // 3. Send EXACT code ONLY as plain text for easy copying
-      await zk.sendMessage(msg.key.remoteJid, {
-        text: `${code}`,
+      // Check expiry
+      if (Date.now() - buttonData.timestamp > BUTTON_EXPIRY) {
+        buttonCodeMap.delete(buttonId);
+        return zk.sendMessage(dest, {
+          text: "❌ Code has expired. Please generate a new one using .pair [number]",
+        });
+      }
+
+      // Delete immediately after use
+      buttonCodeMap.delete(buttonId);
+
+      // Send code with copy-friendly formatting
+      await zk.sendMessage(dest, {
+        text: `📋 *YOUR PAIR CODE:*\n\n\`\`\`${buttonData.code}\`\`\`\n\nCopy this code and use it to pair your device.`,
       });
+
     } catch (err) {
       console.error("Button handler error:", err);
+      // Don't send error message to user to avoid spam
     }
   }
 );
