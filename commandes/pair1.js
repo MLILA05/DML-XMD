@@ -9,7 +9,7 @@ function validatePhoneNumber(number) {
 
 // Rate limit setup
 const userRequests = new Map();
-const RATE_LIMIT_TIME = 30000; // 30 seconds
+const RATE_LIMIT_TIME = 30000;
 
 function isRateLimited(userId) {
   const now = Date.now();
@@ -18,6 +18,9 @@ function isRateLimited(userId) {
   userRequests.set(userId, now);
   return false;
 }
+
+// Store exact code per user for correct copying
+const savedCodes = new Map();
 
 zokou(
   {
@@ -58,21 +61,23 @@ zokou(
 
       const pairCode = data.code;
 
+      // SAVE CODE EXACTLY
+      savedCodes.set(userId, pairCode);
+
       const messageText = `
 🎯 *PAIR CODE READY!*
 
 📱 Number: ${number}
-🔗 Pair Code: ${pairCode}
 
-⏰ Expires in 20 seconds.
-Click below to copy.
+Click the button below to copy your Pair Code.
+(⚠️ Code is hidden for security)
 `;
 
       await zk.sendMessage(dest, {
         text: messageText,
         buttons: [
           {
-            buttonId: `pairCode_${pairCode}`,
+            buttonId: `copyCode`,
             buttonText: { displayText: "📋 COPY CODE" },
             type: 1,
           },
@@ -95,7 +100,7 @@ Click below to copy.
 );
 
 // ===========================
-// BUTTON HANDLER (FIXED)
+// BUTTON HANDLER (PERFECT FIX)
 // ===========================
 zokou(
   { on: "message" },
@@ -104,12 +109,19 @@ zokou(
     if (!btn) return;
 
     const buttonId = btn.selectedButtonId;
+    const userId = msg.key.participant || msg.key.remoteJid;
 
-    if (buttonId.startsWith("pairCode_")) {
-      const code = buttonId.replace("pairCode_", "");
+    if (buttonId === "copyCode") {
+      const code = savedCodes.get(userId);
+
+      if (!code) {
+        return zk.sendMessage(msg.key.remoteJid, {
+          text: "❌ No code stored. Generate again.",
+        });
+      }
 
       await zk.sendMessage(msg.key.remoteJid, {
-        text: `📋 *Your Pair Code:*\n\n${code}\n\nLong-press to copy.`,
+        text: `📋 *Your Pair Code:*\n\n${code}\n\nTap to copy.`,
       });
     }
   }
