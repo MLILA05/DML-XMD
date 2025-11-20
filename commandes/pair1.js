@@ -1,11 +1,13 @@
 const { zokou } = require("../framework/zokou");
 const axios = require("axios");
 
+// Validate phone number
 function validatePhoneNumber(number) {
   const phoneRegex = /^\d{10,15}$/;
   return phoneRegex.test(number.replace(/\s+/g, ""));
 }
 
+// Rate limit
 const userRequests = new Map();
 const RATE_LIMIT_TIME = 30000;
 
@@ -24,6 +26,7 @@ zokou(
     reaction: "🔔",
     categorie: "General",
   },
+
   async (dest, zk, msg) => {
     const { repondre, arg, auteur } = msg;
     const userId = auteur || dest;
@@ -45,7 +48,11 @@ zokou(
 
       await repondre("🕓 Generating Pair Code…");
 
-      const apiUrl = `https://dml-new-session-efk0.onrender.com/code?number=${encodeURIComponent(number)}`;
+      // API URL
+      const apiUrl = `https://dml-new-session-efk0.onrender.com/code?number=${encodeURIComponent(
+        number
+      )}`;
+
       const response = await axios.get(apiUrl, { timeout: 30000 });
 
       if (!response.data?.code) {
@@ -54,28 +61,38 @@ zokou(
 
       const pairCode = response.data.code; // EXACT CODE HERE
 
-      // SEND EXACTLY LIKE YOUR QU.AX UPLOAD FORMAT
+      // -------- SEND MESSAGE WITH COPY BUTTON --------
       await zk.sendMessage(
         dest,
         {
           interactiveMessage: {
-            header: "PAIR CODE GENERATED ⚡",
-            title: `Number: ${number}\n\nClick the button below to copy your Pair Code.`,
-            footer: "DML TECH",
-            buttons: [
-              {
-                name: "cta_copy",
-                buttonParamsJson: JSON.stringify({
-                  display_text: "📋 COPY PAIR CODE",
-                  id: `copy_${Date.now()}`,
-                  copy_code: pairCode, // EXACT CODE COPIED TO CLIPBOARD
-                }),
-              },
-            ],
-          },
+            header: {
+              title: "PAIR CODE GENERATED ⚡"
+            },
+            body: {
+              text: `Number: ${number}\n\nClick the button below to copy your Pair Code:`
+            },
+            footer: {
+              text: "DML TECH"
+            },
+
+            nativeFlowMessage: {
+              buttons: [
+                {
+                  name: "cta_copy",
+                  buttonParamsJson: JSON.stringify({
+                    id: `copy_${Date.now()}`,
+                    display_text: "📋 COPY PAIR CODE",
+                    copy_code: pairCode   // <-- EXACT CODE COPIED
+                  })
+                }
+              ]
+            }
+          }
         },
         { quoted: msg }
       );
+
     } catch (err) {
       console.error("PAIR ERROR:", err);
 
