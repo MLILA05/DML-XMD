@@ -59,23 +59,14 @@ zokou(
         return repondre("❌ No code received from API.");
       }
 
-      const pairCode = response.data.code; // EXACT CODE HERE
+      const pairCode = response.data.code;
 
-      // -------- SEND MESSAGE WITH COPY BUTTON --------
+      // SEND CLEAN COPY BUTTON (Correct structure)
       await zk.sendMessage(
         dest,
         {
+          text: `PAIR CODE GENERATED ⚡\n\nNumber: ${number}\n\nTap the button below to copy your Pair Code.`,
           interactiveMessage: {
-            header: {
-              title: "PAIR CODE GENERATED ⚡"
-            },
-            body: {
-              text: `Number: ${number}\n\nClick the button below to copy your Pair Code:`
-            },
-            footer: {
-              text: "DML TECH"
-            },
-
             nativeFlowMessage: {
               buttons: [
                 {
@@ -83,7 +74,7 @@ zokou(
                   buttonParamsJson: JSON.stringify({
                     id: `copy_${Date.now()}`,
                     display_text: "📋 COPY PAIR CODE",
-                    copy_code: pairCode   // <-- EXACT CODE COPIED
+                    copy_code: pairCode
                   })
                 }
               ]
@@ -95,10 +86,6 @@ zokou(
 
     } catch (err) {
       console.error("PAIR ERROR:", err);
-
-      if (err.code === "ECONNABORTED") {
-        return repondre("❌ Timeout. Try again.");
-      }
       return repondre("❌ Failed to generate Pair Code.");
     }
   }
